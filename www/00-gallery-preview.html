@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>工人證登記 - 畫廊預覽</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <style>
+    :root {
+      --primary-color: #3370ff;
+      --accent-color: #14b8a6;
+      --background-primary: #f4f7fb;
+      --background-secondary: #ffffff;
+      --text-primary: #172033;
+      --text-secondary: #667085;
+      --border-color: #d9e2f2;
+      --shadow-small: 0 8px 24px rgba(15, 23, 42, 0.08);
+      --shadow-medium: 0 20px 48px rgba(15, 23, 42, 0.14);
+      --font-family: "Inter", "SF Pro Display", "PingFang TC", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: 28px;
+      font-family: var(--font-family);
+      color: var(--text-primary);
+      background:
+        radial-gradient(circle at top left, rgba(51, 112, 255, 0.18), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(20, 184, 166, 0.12), transparent 24%),
+        linear-gradient(180deg, #f7f9fd 0%, #eef3fa 100%);
+    }
+
+    .shell {
+      max-width: 1560px;
+      margin: 0 auto;
+    }
+
+    .hero {
+      padding: 28px;
+      border-radius: 32px;
+      background: rgba(255, 255, 255, 0.76);
+      border: 1px solid rgba(255, 255, 255, 0.72);
+      backdrop-filter: blur(24px);
+      box-shadow: var(--shadow-medium);
+      margin-bottom: 24px;
+    }
+
+    .hero-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 18px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .brand-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 18px;
+      display: grid;
+      place-items: center;
+      color: #ffffff;
+      background: linear-gradient(135deg, var(--primary-color), #1f5bdf);
+      box-shadow: 0 12px 24px rgba(51, 112, 255, 0.28);
+    }
+
+    .eyebrow {
+      margin: 0 0 6px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--primary-color);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 30px;
+      line-height: 1.15;
+    }
+
+    .subtitle {
+      margin: 10px 0 0;
+      max-width: 780px;
+      color: var(--text-secondary);
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .hero-links {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .link-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      height: 46px;
+      padding: 0 16px;
+      border-radius: 14px;
+      color: var(--primary-color);
+      background: #eef4ff;
+      border: 1px solid #dce7ff;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .summary-card {
+      padding: 18px;
+      border-radius: 20px;
+      background: #f8fbff;
+      border: 1px solid #dce6f7;
+    }
+
+    .summary-card div:first-child {
+      color: var(--text-secondary);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .summary-card div:last-child {
+      margin-top: 10px;
+      font-size: 22px;
+      font-weight: 800;
+    }
+
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 20px;
+    }
+
+    .page-card {
+      padding: 18px;
+      border-radius: 28px;
+      background: rgba(255, 255, 255, 0.78);
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(24px);
+      box-shadow: var(--shadow-medium);
+    }
+
+    .page-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 14px;
+    }
+
+    .page-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 18px;
+      font-weight: 800;
+    }
+
+    .page-title i {
+      width: 40px;
+      height: 40px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      color: var(--primary-color);
+      background: #edf3ff;
+    }
+
+    .page-meta {
+      color: var(--text-secondary);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .frame-wrap {
+      border-radius: 22px;
+      overflow: hidden;
+      border: 1px solid #dde7f5;
+      background: #edf2fa;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    }
+
+    iframe {
+      width: 100%;
+      height: 760px;
+      border: 0;
+      display: block;
+      background: #ffffff;
+    }
+
+    @media (max-width: 1280px) {
+      .gallery,
+      .summary-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-top,
+      .page-head {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <div class="hero-top">
+        <div class="brand">
+          <div class="brand-icon">
+            <i class="fa-solid fa-id-card-clip"></i>
+          </div>
+          <div>
+            <p class="eyebrow">Gallery Preview</p>
+            <h1>工人證登記 iPad Prototype</h1>
+            <p class="subtitle">此頁整合 4 個已確認的獨立 HTML 原型，方便在同一個畫面快速預覽整體流程，包括登入、登記、記錄詳情與記錄列表。</p>
+          </div>
+        </div>
+
+        <div class="hero-links">
+          <a class="link-chip" href="01-login.html" target="_blank"><i class="fa-solid fa-up-right-from-square"></i> 登入頁</a>
+          <a class="link-chip" href="02-worker-registration.html" target="_blank"><i class="fa-solid fa-up-right-from-square"></i> 登記工人證頁</a>
+          <a class="link-chip" href="03-record-detail.html" target="_blank"><i class="fa-solid fa-up-right-from-square"></i> 記錄詳情頁</a>
+          <a class="link-chip" href="04-record-list.html" target="_blank"><i class="fa-solid fa-up-right-from-square"></i> 記錄列表頁</a>
+        </div>
+      </div>
+
+      <div class="summary-grid">
+        <div class="summary-card">
+          <div>應用名稱</div>
+          <div>工人證登記</div>
+        </div>
+        <div class="summary-card">
+          <div>使用裝置</div>
+          <div>iPad 橫向</div>
+        </div>
+        <div class="summary-card">
+          <div>頁面數量</div>
+          <div>4 Pages</div>
+        </div>
+        <div class="summary-card">
+          <div>設計風格</div>
+          <div>科技感 / 簡潔風</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="gallery">
+      <article class="page-card">
+        <div class="page-head">
+          <div class="page-title">
+            <i class="fa-solid fa-right-to-bracket"></i>
+            <span>01. 登入頁</span>
+          </div>
+          <div class="page-meta">職員身份驗證入口</div>
+        </div>
+        <div class="frame-wrap">
+          <iframe src="01-login.html" title="登入頁"></iframe>
+        </div>
+      </article>
+
+      <article class="page-card">
+        <div class="page-head">
+          <div class="page-title">
+            <i class="fa-solid fa-id-card"></i>
+            <span>02. 登記工人證頁</span>
+          </div>
+          <div class="page-meta">掃描、核對、提交登記</div>
+        </div>
+        <div class="frame-wrap">
+          <iframe src="02-worker-registration.html" title="登記工人證頁"></iframe>
+        </div>
+      </article>
+
+      <article class="page-card">
+        <div class="page-head">
+          <div class="page-title">
+            <i class="fa-solid fa-file-circle-check"></i>
+            <span>03. 記錄詳情頁</span>
+          </div>
+          <div class="page-meta">查看單筆出入記錄</div>
+        </div>
+        <div class="frame-wrap">
+          <iframe src="03-record-detail.html" title="記錄詳情頁"></iframe>
+        </div>
+      </article>
+
+      <article class="page-card">
+        <div class="page-head">
+          <div class="page-title">
+            <i class="fa-solid fa-rectangle-list"></i>
+            <span>04. 記錄列表頁</span>
+          </div>
+          <div class="page-meta">列表檢視與篩選查閱</div>
+        </div>
+        <div class="frame-wrap">
+          <iframe src="04-record-list.html" title="記錄列表頁"></iframe>
+        </div>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

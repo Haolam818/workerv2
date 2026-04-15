@@ -1,0 +1,7 @@
+{
+  "name": "worker-v1",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "custom"
+}

@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>工人證登記 - 登入頁</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <style>
+    :root {
+      --primary-color: #3370ff;
+      --accent-color: #14b8a6;
+      --background-primary: #f4f7fb;
+      --background-secondary: #ffffff;
+      --text-primary: #172033;
+      --text-secondary: #667085;
+      --border-color: #d9e2f2;
+      --success-color: #12b76a;
+      --warning-color: #f79009;
+      --font-family: "Inter", "SF Pro Display", "PingFang TC", sans-serif;
+      --font-size-display: 40px;
+      --font-size-headline: 28px;
+      --font-size-body: 16px;
+      --font-size-caption: 13px;
+      --font-weight-bold: 700;
+      --font-weight-regular: 400;
+      --space-1: 8px;
+      --space-2: 16px;
+      --space-3: 24px;
+      --space-4: 32px;
+      --radius-small: 12px;
+      --radius-medium: 20px;
+      --radius-large: 28px;
+      --shadow-small: 0 8px 24px rgba(15, 23, 42, 0.08);
+      --shadow-medium: 0 20px 48px rgba(15, 23, 42, 0.14);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 28px;
+      font-family: var(--font-family);
+      color: var(--text-primary);
+      background:
+        radial-gradient(circle at top left, rgba(51, 112, 255, 0.18), transparent 32%),
+        radial-gradient(circle at bottom right, rgba(20, 184, 166, 0.14), transparent 28%),
+        linear-gradient(180deg, #f7f9fd 0%, #eef3fa 100%);
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 0.42) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.42) 1px, transparent 1px);
+      background-size: 36px 36px;
+      pointer-events: none;
+      mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.55), transparent 90%);
+    }
+
+    .device-frame {
+      width: min(1180px, 100%);
+      min-height: 820px;
+      display: grid;
+      grid-template-columns: 1.08fr 0.92fr;
+      gap: 24px;
+      padding: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.68);
+      border-radius: 36px;
+      background: rgba(255, 255, 255, 0.72);
+      backdrop-filter: blur(24px);
+      box-shadow: 0 24px 80px rgba(18, 35, 69, 0.16);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero,
+    .login-panel {
+      border-radius: var(--radius-large);
+      background: var(--background-secondary);
+      box-shadow: var(--shadow-small);
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 36px;
+      background:
+        linear-gradient(160deg, rgba(51, 112, 255, 0.96) 0%, rgba(31, 91, 223, 0.96) 56%, rgba(13, 148, 136, 0.92) 100%);
+      color: #ffffff;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      width: 380px;
+      height: 380px;
+      right: -120px;
+      top: -40px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.24), transparent 70%);
+    }
+
+    .hero-top,
+    .hero-bottom,
+    .login-panel {
+      position: relative;
+      z-index: 1;
+    }
+
+    .brand-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 36px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .brand-badge {
+      width: 48px;
+      height: 48px;
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+      background: rgba(255, 255, 255, 0.16);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    }
+
+    .status-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.14);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .headline {
+      max-width: 520px;
+    }
+
+    .headline h1 {
+      margin: 0 0 16px;
+      font-size: var(--font-size-display);
+      line-height: 1.1;
+      font-weight: 800;
+    }
+
+    .headline p {
+      margin: 0;
+      max-width: 500px;
+      font-size: 17px;
+      line-height: 1.7;
+      color: rgba(255, 255, 255, 0.82);
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 34px;
+    }
+
+    .feature-card,
+    .metric-card {
+      padding: 18px;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      backdrop-filter: blur(10px);
+    }
+
+    .feature-card i,
+    .metric-card i {
+      font-size: 18px;
+      margin-bottom: 12px;
+    }
+
+    .feature-card h3,
+    .metric-card h3 {
+      margin: 0 0 8px;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .feature-card p,
+    .metric-card p {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.6;
+      color: rgba(255, 255, 255, 0.78);
+    }
+
+    .hero-bottom {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      align-items: end;
+    }
+
+    .metric-value {
+      display: block;
+      margin: 14px 0 6px;
+      font-size: 36px;
+      line-height: 1;
+      font-weight: 800;
+    }
+
+    .login-panel {
+      padding: 36px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .panel-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 28px;
+    }
+
+    .panel-label {
+      font-size: 14px;
+      color: var(--text-secondary);
+      font-weight: 600;
+    }
+
+    .time-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: #f5f8ff;
+      color: var(--primary-color);
+      font-size: 13px;
+      font-weight: 700;
+      border: 1px solid #dce7ff;
+    }
+
+    .login-panel h2 {
+      margin: 0 0 10px;
+      font-size: var(--font-size-headline);
+      line-height: 1.2;
+    }
+
+    .subtext {
+      margin: 0 0 28px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      font-size: 15px;
+    }
+
+    .segmented {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      padding: 6px;
+      margin-bottom: 24px;
+      border-radius: 16px;
+      background: #f3f6fb;
+      border: 1px solid #e4eaf5;
+    }
+
+    .segment {
+      padding: 14px 16px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      text-align: center;
+    }
+
+    .segment.active {
+      background: var(--background-secondary);
+      color: var(--primary-color);
+      box-shadow: 0 6px 16px rgba(51, 112, 255, 0.12);
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 10px;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .input-wrap {
+      position: relative;
+    }
+
+    input,
+    select {
+      width: 100%;
+      height: 58px;
+      padding: 0 18px 0 50px;
+      border-radius: 16px;
+      border: 1px solid var(--border-color);
+      background: #fbfcfe;
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 16px;
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: rgba(51, 112, 255, 0.5);
+      box-shadow: 0 0 0 4px rgba(51, 112, 255, 0.12);
+      background: #ffffff;
+    }
+
+    .input-icon,
+    .toggle-password {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #8c99b2;
+      font-size: 16px;
+    }
+
+    .input-icon {
+      left: 18px;
+    }
+
+    .toggle-password {
+      right: 18px;
+      cursor: pointer;
+    }
+
+    .helper-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-top: -4px;
+      font-size: 14px;
+    }
+
+    .checkbox {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .checkbox input {
+      width: 18px;
+      height: 18px;
+      padding: 0;
+      accent-color: var(--primary-color);
+    }
+
+    .helper-link {
+      color: var(--primary-color);
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .action-row {
+      display: grid;
+      grid-template-columns: 1fr 160px;
+      gap: 14px;
+      margin-top: 10px;
+    }
+
+    .button {
+      height: 58px;
+      border: 0;
+      border-radius: 16px;
+      font-family: inherit;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+    }
+
+    .button:hover {
+      transform: translateY(-1px);
+    }
+
+    .button-primary {
+      background: linear-gradient(135deg, var(--primary-color), #1f5bdf);
+      color: #ffffff;
+      box-shadow: 0 16px 28px rgba(51, 112, 255, 0.28);
+    }
+
+    .button-secondary {
+      background: #f5f8ff;
+      color: var(--primary-color);
+      border: 1px solid #dce7ff;
+    }
+
+    .tips-card {
+      margin-top: 24px;
+      padding: 18px 20px;
+      border-radius: 18px;
+      background: linear-gradient(180deg, #f9fbff 0%, #f4f8ff 100%);
+      border: 1px solid #dbe7ff;
+    }
+
+    .tips-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--text-primary);
+    }
+
+    .tips-list {
+      display: grid;
+      gap: 10px;
+      color: var(--text-secondary);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .footer-note {
+      margin-top: 22px;
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .footer-note strong {
+      color: var(--text-primary);
+    }
+
+    @media (max-width: 1024px) {
+      .device-frame {
+        grid-template-columns: 1fr;
+        min-height: auto;
+      }
+
+      .hero-bottom,
+      .feature-grid,
+      .action-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="device-frame">
+    <section class="hero">
+      <div class="hero-top">
+        <div class="brand-row">
+          <div class="brand">
+            <div class="brand-badge">
+              <i class="fa-solid fa-id-card-clip"></i>
+            </div>
+            <div>
+              <div style="font-size: 18px;">工人證登記</div>
+              <div style="font-size: 13px; opacity: 0.72; font-weight: 600; margin-top: 2px;">Worker Access Register</div>
+            </div>
+          </div>
+          <div class="status-chip">
+            <i class="fa-solid fa-shield-halved"></i>
+            社區職員專用
+          </div>
+        </div>
+
+        <div class="headline">
+          <h1>更快完成工人進出登記，現場記錄即時同步。</h1>
+          <p>針對 iPad 值勤場景設計，將掃描、身份核對與出入紀錄集中在同一套介面，減少紙本登記與人工抄錄錯漏。</p>
+        </div>
+
+        <div class="feature-grid">
+          <div class="feature-card">
+            <i class="fa-solid fa-camera"></i>
+            <h3>掃描即讀</h3>
+            <p>快速進入平安咭與工人證掃描流程，減少前台停留時間。</p>
+          </div>
+          <div class="feature-card">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+            <h3>記錄可追溯</h3>
+            <p>每次進出時間、職員操作與在場狀態清晰保留。</p>
+          </div>
+          <div class="feature-card">
+            <i class="fa-solid fa-building-shield"></i>
+            <h3>資料一致</h3>
+            <p>工人身份與所屬機構資料標準化，方便後續查閱。</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-bottom">
+        <div class="metric-card">
+          <i class="fa-solid fa-signal"></i>
+          <h3>今日登記概況</h3>
+          <span class="metric-value">128</span>
+          <p>本日累計完成進出記錄，系統同步狀態正常。</p>
+        </div>
+        <div class="metric-card">
+          <i class="fa-solid fa-user-check"></i>
+          <h3>值班職員</h3>
+          <span class="metric-value" style="font-size: 30px;">08:30 - 20:30</span>
+          <p>建議使用職員帳號登入，確保每筆記錄具備操作人追蹤。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="login-panel">
+      <div class="panel-top">
+        <div>
+          <div class="panel-label">職員身份驗證</div>
+          <h2>登入管理端</h2>
+        </div>
+        <div class="time-pill">
+          <i class="fa-regular fa-clock"></i>
+          <span id="current-time">--:--</span>
+        </div>
+      </div>
+
+      <p class="subtext">以職員帳號登入後，即可進入工人證登記及記錄列表。版面按 iPad 橫向操作優化，適合前台與保安櫃位快速使用。</p>
+
+      <div class="segmented" aria-label="登入方式">
+        <div class="segment active">帳號登入</div>
+        <div class="segment">單位登入</div>
+      </div>
+
+      <form class="form-grid">
+        <div>
+          <label for="staff-id">職員帳號</label>
+          <div class="input-wrap">
+            <i class="fa-regular fa-user input-icon"></i>
+            <input id="staff-id" type="text" value="STAFF-0821" aria-label="職員帳號">
+          </div>
+        </div>
+
+        <div>
+          <label for="password">登入密碼</label>
+          <div class="input-wrap">
+            <i class="fa-solid fa-lock input-icon"></i>
+            <input id="password" type="password" value="Password123" aria-label="登入密碼">
+            <i class="fa-regular fa-eye toggle-password" id="toggle-password" aria-hidden="true"></i>
+          </div>
+        </div>
+
+        <div>
+          <label for="location">值勤位置</label>
+          <div class="input-wrap">
+            <i class="fa-solid fa-location-dot input-icon"></i>
+            <select id="location" aria-label="值勤位置">
+              <option>社區主入口接待處</option>
+              <option>停車場保安崗位</option>
+              <option>後勤服務入口</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="helper-row">
+          <label class="checkbox" for="remember-me">
+            <input id="remember-me" type="checkbox" checked>
+            保持登入 8 小時
+          </label>
+          <a class="helper-link" href="#">忘記密碼</a>
+        </div>
+
+        <div class="action-row">
+          <button class="button button-primary" type="button">
+            <i class="fa-solid fa-arrow-right-to-bracket"></i>
+            進入系統
+          </button>
+          <button class="button button-secondary" type="button">
+            <i class="fa-solid fa-fingerprint"></i>
+            快速驗證
+          </button>
+        </div>
+      </form>
+
+      <div class="tips-card">
+        <div class="tips-title">
+          <i class="fa-solid fa-circle-info" style="color: var(--primary-color);"></i>
+          登入前提示
+        </div>
+        <div class="tips-list">
+          <div>請確認 iPad 已連接內部網絡，以便同步工人出入記錄。</div>
+          <div>掃描工人平安咭後，系統將自動帶入咭號與到期日，減少手動輸入。</div>
+          <div>如需交更，請先完成離場中的登記再登出，以免當值資料缺失。</div>
+        </div>
+      </div>
+
+      <div class="footer-note">
+        <div><strong>版本</strong> v1.0 Prototype</div>
+        <div>適用裝置: iPad 10.9" / iPad Pro 11" 橫向介面</div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const currentTime = document.getElementById("current-time");
+    const togglePassword = document.getElementById("toggle-password");
+    const password = document.getElementById("password");
+
+    function updateTime() {
+      const now = new Date();
+      currentTime.textContent = now.toLocaleTimeString("zh-HK", {
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+    }
+
+    togglePassword.addEventListener("click", function () {
+      const isPassword = password.type === "password";
+      password.type = isPassword ? "text" : "password";
+      togglePassword.className = isPassword
+        ? "fa-regular fa-eye-slash toggle-password"
+        : "fa-regular fa-eye toggle-password";
+    });
+
+    updateTime();
+    setInterval(updateTime, 60000);
+  </script>
+</body>
+</html>

@@ -1,0 +1,2164 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>工人證登記 iPad App</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <style>
+    :root {
+      --bg-1: #f4f8ff;
+      --bg-2: #e8f0ff;
+      --panel: #ffffff;
+      --panel-soft: #f8fbff;
+      --line: rgba(59, 130, 246, 0.16);
+      --line-strong: rgba(59, 130, 246, 0.28);
+      --text-main: #0f172a;
+      --text-soft: #64748b;
+      --primary: #2563eb;
+      --accent: #3b82f6;
+      --accent-2: #60a5fa;
+      --success: #12b76a;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --radius-xl: 30px;
+      --radius-lg: 22px;
+      --radius-md: 16px;
+      --shadow-main: 0 24px 64px rgba(37, 99, 235, 0.12);
+      --shadow-glow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 12px 24px rgba(37, 99, 235, 0.06);
+      --font: "Inter", "SF Pro Display", "PingFang TC", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      font-family: var(--font);
+      color: var(--text-main);
+      background:
+        radial-gradient(circle at top left, rgba(96, 165, 250, 0.22), transparent 24%),
+        radial-gradient(circle at bottom right, rgba(191, 219, 254, 0.72), transparent 28%),
+        linear-gradient(180deg, #f7faff 0%, #eef4ff 55%, #e8f1ff 100%);
+      overflow-x: hidden;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    body::before {
+      background-image:
+        linear-gradient(rgba(59, 130, 246, 0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(59, 130, 246, 0.06) 1px, transparent 1px);
+      background-size: 38px 38px;
+      mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.8), transparent 94%);
+    }
+
+    body::after {
+      background:
+        radial-gradient(circle at 20% 10%, rgba(96, 165, 250, 0.12), transparent 20%),
+        radial-gradient(circle at 80% 78%, rgba(191, 219, 254, 0.2), transparent 18%);
+    }
+
+    .ipad-shell {
+      width: min(1240px, 100%);
+      min-height: 840px;
+      border-radius: 42px;
+      padding: 18px;
+      background: linear-gradient(180deg, #fdfefe, #f4f8ff);
+      border: 1px solid rgba(59, 130, 246, 0.08);
+      box-shadow: var(--shadow-main);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .ipad-shell::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: 1px;
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(96, 165, 250, 0.12), rgba(255, 255, 255, 0.2));
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+
+    .camera-dot {
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      width: 78px;
+      height: 8px;
+      border-radius: 999px;
+      transform: translateX(-50%);
+      background: rgba(148, 163, 184, 0.18);
+      border: 1px solid rgba(148, 163, 184, 0.12);
+    }
+
+    .screen {
+      min-height: 804px;
+      border-radius: 32px;
+      padding: 22px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(246, 250, 255, 0.98));
+      border: 1px solid rgba(59, 130, 246, 0.08);
+      backdrop-filter: blur(24px);
+      position: relative;
+    }
+
+    .login-screen {
+      min-height: 758px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .login-card {
+      width: 100%;
+      max-width: 460px;
+      padding: 30px;
+      border-radius: 28px;
+      background: linear-gradient(180deg, #ffffff, #f8fbff);
+      border: 1px solid rgba(59, 130, 246, 0.12);
+      box-shadow: var(--shadow-main);
+    }
+
+    .login-header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .login-header .brand-icon {
+      margin: 0 auto 16px;
+    }
+
+    .login-title {
+      margin: 0;
+      font-size: 28px;
+      font-weight: 800;
+    }
+
+    .login-subtitle {
+      margin: 10px 0 0;
+      color: var(--text-soft);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .login-form {
+      display: grid;
+      gap: 14px;
+    }
+
+    .login-message {
+      min-height: 20px;
+      font-size: 13px;
+      color: var(--text-soft);
+      text-align: center;
+    }
+
+    .login-message.error {
+      color: #b42318;
+    }
+
+    .login-message.success {
+      color: #0f8a55;
+    }
+
+    .app-shell {
+      min-height: 758px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .brand-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 18px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, #eff6ff, #dbeafe);
+      border: 1px solid rgba(59, 130, 246, 0.14);
+      color: var(--primary);
+      box-shadow: 0 12px 24px rgba(37, 99, 235, 0.08);
+    }
+
+    .eyebrow {
+      margin: 0 0 6px;
+      font-size: 12px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--primary);
+      font-weight: 800;
+    }
+
+    .title {
+      margin: 0;
+      font-size: 28px;
+      line-height: 1.1;
+      font-weight: 800;
+    }
+
+    .subtitle {
+      margin: 7px 0 0;
+      color: var(--text-soft);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .top-actions,
+    .tabs,
+    .action-row,
+    .summary-grid,
+    .record-meta {
+      display: flex;
+      gap: 12px;
+    }
+
+    .action-row {
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .chip,
+    .tab,
+    .button,
+    .stat-card,
+    .timeline-item,
+    .record-item,
+    .mini-card,
+    .field,
+    .list-head,
+    .scan-stage,
+    .scan-result,
+    .panel {
+      box-shadow: var(--shadow-glow);
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      height: 46px;
+      padding: 0 16px;
+      border-radius: 16px;
+      color: var(--text-main);
+      background: #ffffff;
+      border: 1px solid var(--line);
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .chip.primary {
+      color: var(--primary);
+    }
+
+    .tabs {
+      margin-bottom: 18px;
+    }
+
+    .tab {
+      height: 48px;
+      padding: 0 18px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: #ffffff;
+      color: var(--text-soft);
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .tab.active {
+      color: #ffffff;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border-color: transparent;
+    }
+
+    .view {
+      display: none;
+    }
+
+    .view.active {
+      display: block;
+    }
+
+    .register-layout,
+    .records-layout {
+      display: grid;
+      gap: 16px;
+    }
+
+    .register-layout {
+      grid-template-columns: minmax(0, 1.46fr) minmax(320px, 0.74fr);
+    }
+
+    .records-layout {
+      grid-template-columns: minmax(360px, 0.88fr) minmax(0, 1.12fr);
+    }
+
+    .column {
+      display: grid;
+      gap: 16px;
+      align-content: start;
+    }
+
+    .panel {
+      padding: 20px;
+      border-radius: 24px;
+      background: linear-gradient(180deg, #ffffff, #fbfdff);
+      border: 1px solid var(--line);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .panel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.03), transparent 42%, rgba(191, 219, 254, 0.2));
+      pointer-events: none;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 16px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 19px;
+      font-weight: 800;
+    }
+
+    .section-title i {
+      width: 40px;
+      height: 40px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      color: var(--primary);
+      background: #eff6ff;
+      border: 1px solid rgba(59, 130, 246, 0.12);
+    }
+
+    .section-note {
+      color: var(--text-soft);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .scan-card {
+      display: grid;
+      grid-template-columns: 1.08fr 0.92fr;
+      gap: 16px;
+    }
+
+    .scan-stage {
+      min-height: 270px;
+      padding: 24px;
+      border-radius: 24px;
+      border: 1px dashed rgba(59, 130, 246, 0.28);
+      background: linear-gradient(180deg, #f8fbff, #f2f7ff);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .scan-stage::before,
+    .scan-stage::after {
+      content: "";
+      position: absolute;
+      inset: 18px;
+      border-radius: 18px;
+      pointer-events: none;
+    }
+
+    .scan-stage::before {
+      border: 1px solid rgba(59, 130, 246, 0.1);
+    }
+
+    .scan-stage::after {
+      display: none;
+    }
+
+    .scan-core {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      max-width: 360px;
+    }
+
+    .scan-icon {
+      width: 96px;
+      height: 96px;
+      margin: 0 auto 18px;
+      border-radius: 28px;
+      display: grid;
+      place-items: center;
+      font-size: 34px;
+      color: var(--primary);
+      background: linear-gradient(135deg, #eff6ff, #dbeafe);
+      border: 1px solid rgba(59, 130, 246, 0.16);
+      box-shadow: 0 12px 24px rgba(37, 99, 235, 0.08);
+    }
+
+    .scan-core h2 {
+      margin: 0 0 10px;
+      font-size: 24px;
+    }
+
+    .scan-core p {
+      margin: 0 0 22px;
+      color: var(--text-soft);
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: fit-content;
+      flex: 0 0 auto;
+      height: 50px;
+      padding: 0 18px;
+      border-radius: 16px;
+      border: 0;
+      font: inherit;
+      font-size: 14px;
+      font-weight: 800;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: transform 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .button:hover {
+      transform: translateY(-1px);
+    }
+
+    .button-primary {
+      color: #ffffff;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+    }
+
+    .button-secondary {
+      color: var(--primary);
+      background: #eff6ff;
+      border: 1px solid rgba(59, 130, 246, 0.12);
+    }
+
+    .button-warning {
+      color: #201000;
+      background: linear-gradient(135deg, #ffbf5e, #ffd788);
+    }
+
+    .button-ghost {
+      color: var(--text-main);
+      background: #ffffff;
+      border: 1px solid var(--line);
+    }
+
+    .scan-result {
+      padding: 18px;
+      border-radius: 22px;
+      background: linear-gradient(180deg, #ffffff, #f8fbff);
+      border: 1px solid rgba(59, 130, 246, 0.12);
+      display: grid;
+      align-content: start;
+      gap: 14px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      width: fit-content;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .status-ok {
+      color: #0f8a55;
+      background: rgba(18, 183, 106, 0.12);
+      border: 1px solid rgba(18, 183, 106, 0.18);
+    }
+
+    .status-warning {
+      color: #b66a00;
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.18);
+    }
+
+    .result-title {
+      margin: 0;
+      font-size: 17px;
+      font-weight: 800;
+    }
+
+    .result-text {
+      margin: 0;
+      color: var(--text-soft);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .meta-list,
+    .detail-grid,
+    .timeline,
+    .record-list,
+    .form-grid,
+    .stat-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .meta-item,
+    .detail-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+      font-size: 14px;
+    }
+
+    .meta-item:last-child,
+    .detail-item:last-child {
+      border-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .meta-item span:first-child,
+    .detail-item span:first-child {
+      color: var(--text-soft);
+    }
+
+    .meta-item span:last-child,
+    .detail-item span:last-child {
+      font-weight: 700;
+      text-align: right;
+    }
+
+    .form-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      position: relative;
+      z-index: 1;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+      padding: 14px;
+      border-radius: 18px;
+      background: #f8fbff;
+      border: 1px solid rgba(59, 130, 246, 0.1);
+    }
+
+    .field.full {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      font-size: 13px;
+      color: var(--text-soft);
+      font-weight: 700;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      border: 1px solid rgba(148, 163, 184, 0.24);
+      border-radius: 14px;
+      background: #ffffff;
+      color: var(--text-main);
+      padding: 13px 14px;
+      font: inherit;
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    input,
+    select {
+      height: 48px;
+    }
+
+    textarea {
+      min-height: 92px;
+      resize: none;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: rgba(37, 99, 235, 0.34);
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.08);
+    }
+
+    .hint {
+      font-size: 12px;
+      color: var(--text-soft);
+      line-height: 1.5;
+      position: relative;
+      z-index: 1;
+    }
+
+    .stat-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      position: relative;
+      z-index: 1;
+    }
+
+    .stat-card {
+      padding: 18px;
+      border-radius: 20px;
+      background: #ffffff;
+      border: 1px solid rgba(59, 130, 246, 0.1);
+    }
+
+    .stat-label {
+      color: var(--text-soft);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+    }
+
+    .stat-value {
+      margin-top: 10px;
+      font-size: 28px;
+      font-weight: 800;
+    }
+
+    .mini-card {
+      padding: 16px;
+      border-radius: 18px;
+      background: #ffffff;
+      border: 1px solid rgba(59, 130, 246, 0.1);
+      position: relative;
+      z-index: 1;
+    }
+
+    .mini-title {
+      margin: 0 0 10px;
+      font-size: 15px;
+      font-weight: 800;
+    }
+
+    .mini-text {
+      margin: 0;
+      color: var(--text-soft);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: 1.25fr 0.8fr auto;
+      gap: 12px;
+      margin-bottom: 14px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .search-wrap {
+      position: relative;
+    }
+
+    .search-wrap i {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-soft);
+    }
+
+    .search-wrap input {
+      padding-left: 42px;
+    }
+
+    .filter-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .filter-chip {
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: #f8fbff;
+      border: 1px solid rgba(59, 130, 246, 0.1);
+      color: var(--text-soft);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .filter-chip.active {
+      color: #ffffff;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border-color: transparent;
+    }
+
+    .list-head {
+      display: grid;
+      grid-template-columns: 1.2fr 0.85fr 0.75fr 0.8fr;
+      gap: 12px;
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: #f8fbff;
+      border: 1px solid rgba(59, 130, 246, 0.08);
+      color: var(--text-soft);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-weight: 700;
+      position: relative;
+      z-index: 1;
+    }
+
+    .record-list {
+      position: relative;
+      z-index: 1;
+    }
+
+    .record-item {
+      width: 100%;
+      padding: 16px;
+      border: 1px solid rgba(59, 130, 246, 0.1);
+      border-radius: 20px;
+      background: #ffffff;
+      color: inherit;
+      text-align: left;
+      cursor: pointer;
+      display: grid;
+      grid-template-columns: 1.2fr 0.85fr 0.75fr 0.8fr;
+      gap: 12px;
+      align-items: center;
+      transition: 0.2s ease;
+    }
+
+    .record-item.active {
+      border-color: rgba(37, 99, 235, 0.24);
+      background: linear-gradient(135deg, #eff6ff, #f8fbff);
+    }
+
+    .person {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      color: #ffffff;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      font-weight: 800;
+      flex: 0 0 auto;
+    }
+
+    .person h4,
+    .detail-name {
+      margin: 0 0 4px;
+      font-size: 15px;
+      font-weight: 800;
+    }
+
+    .person p,
+    .detail-sub {
+      margin: 0;
+      color: var(--text-soft);
+      font-size: 13px;
+    }
+
+    .record-tag {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 12px;
+      border-radius: 999px;
+      width: fit-content;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .tag-long {
+      color: #1d4ed8;
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.16);
+    }
+
+    .tag-temp {
+      color: #b66a00;
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.16);
+    }
+
+    .tag-inside {
+      color: #0f8a55;
+      background: rgba(18, 183, 106, 0.12);
+      border: 1px solid rgba(18, 183, 106, 0.16);
+    }
+
+    .tag-exit {
+      color: #b42318;
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.14);
+    }
+
+    .record-cell {
+      font-size: 14px;
+      color: var(--text-main);
+    }
+
+    .record-cell.soft {
+      color: var(--text-soft);
+    }
+
+    .empty-state {
+      min-height: 440px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      color: var(--text-soft);
+      position: relative;
+      z-index: 1;
+    }
+
+    .empty-state i {
+      font-size: 42px;
+      color: rgba(37, 99, 235, 0.55);
+      margin-bottom: 12px;
+    }
+
+    .detail-panel {
+      position: relative;
+      z-index: 1;
+    }
+
+    .detail-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .detail-hero {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .detail-avatar {
+      width: 62px;
+      height: 62px;
+      border-radius: 20px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, #eff6ff, #dbeafe);
+      color: var(--primary);
+      border: 1px solid rgba(59, 130, 246, 0.12);
+      font-size: 22px;
+    }
+
+    .detail-id {
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--text-soft);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .detail-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      margin-bottom: 14px;
+    }
+
+    .detail-item {
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: #f8fbff;
+      border: 1px solid rgba(59, 130, 246, 0.1);
+      display: grid;
+      gap: 6px;
+    }
+
+    .detail-item span:last-child {
+      text-align: left;
+    }
+
+    .timeline-item {
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: #f8fbff;
+      border: 1px solid rgba(59, 130, 246, 0.1);
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .timeline-item strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 14px;
+    }
+
+    .timeline-item span,
+    .timeline-item small {
+      color: var(--text-soft);
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(148, 163, 184, 0.3);
+      backdrop-filter: blur(10px);
+      z-index: 10;
+    }
+
+    .modal.show {
+      display: flex;
+    }
+
+    .modal-card {
+      width: min(520px, 100%);
+      padding: 24px;
+      border-radius: 24px;
+      background: linear-gradient(180deg, #ffffff, #f8fbff);
+      border: 1px solid rgba(59, 130, 246, 0.1);
+      box-shadow: var(--shadow-main);
+    }
+
+    .modal-card h3 {
+      margin: 0 0 8px;
+      font-size: 22px;
+    }
+
+    .modal-card p {
+      margin: 0 0 16px;
+      color: var(--text-soft);
+      line-height: 1.6;
+    }
+
+    @media (max-width: 1080px) {
+      .register-layout,
+      .records-layout,
+      .scan-card,
+      .toolbar,
+      .list-head,
+      .record-item {
+        grid-template-columns: 1fr;
+      }
+
+      .topbar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .top-actions,
+      .tabs,
+      .action-row {
+        flex-wrap: wrap;
+      }
+    }
+
+    @media (max-width: 760px) {
+      body {
+        padding: 12px;
+      }
+
+      .ipad-shell,
+      .screen {
+        border-radius: 24px;
+      }
+
+      .form-grid,
+      .stat-grid,
+      .detail-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="ipad-shell">
+    <div class="camera-dot"></div>
+    <div class="screen">
+      <section class="login-screen" id="loginScreen">
+        <div class="login-card">
+          <div class="login-header">
+            <div class="brand-icon"><i class="fa-solid fa-user-shield"></i></div>
+            <h1 class="login-title">職員登入</h1>
+            <p class="login-subtitle">請先登入職員帳號，驗證成功後才可進行工人證登記與記錄同步。</p>
+          </div>
+          <div class="login-form">
+            <div class="field">
+              <label for="staffUsername">職員帳號</label>
+              <input id="staffUsername" type="text" placeholder="請輸入帳號" value="staff.demo">
+            </div>
+            <div class="field">
+              <label for="staffPassword">登入密碼</label>
+              <input id="staffPassword" type="password" placeholder="請輸入密碼" value="Password123">
+            </div>
+            <div class="field">
+              <label for="staffSiteCode">值守站點</label>
+              <input id="staffSiteCode" type="text" placeholder="例如 ESTATE-A02" value="ESTATE-A02">
+            </div>
+            <p class="login-message" id="loginMessage">已預留登入 API，現可用示例帳號進行原型演示。</p>
+            <div class="action-row" style="justify-content: center;">
+              <button class="button button-primary" type="button" id="loginButton"><i class="fa-solid fa-arrow-right-to-bracket"></i> 登入系統</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="app-shell" id="appShell" hidden>
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-icon"><i class="fa-solid fa-id-card-clip"></i></div>
+          <div>
+            <p class="eyebrow">Smart Gate Control</p>
+            <h1 class="title">工人證登記中樞</h1>
+            <p class="subtitle">供香港社區職員於 iPad 快速完成平安咭掃描、工人證登記與進出場記錄。</p>
+          </div>
+        </div>
+        <div class="top-actions">
+          <div class="chip primary"><i class="fa-solid fa-satellite-dish"></i> 掃描引擎在線</div>
+          <div class="chip"><i class="fa-regular fa-clock"></i> <span id="liveTime">--:--</span></div>
+          <div class="chip"><i class="fa-solid fa-user"></i> <span id="staffIdentity">未登入</span></div>
+        </div>
+      </header>
+
+      <nav class="tabs">
+        <button class="tab active" type="button" data-view="registerView"><i class="fa-solid fa-wave-square"></i> 工人登記</button>
+        <button class="tab" type="button" data-view="recordsView"><i class="fa-solid fa-table-list"></i> 記錄中心</button>
+      </nav>
+
+      <section class="view active" id="registerView">
+        <div class="register-layout">
+          <div class="column">
+            <section class="panel">
+              <div class="section-head">
+                <div class="section-title"><i class="fa-solid fa-camera-viewfinder"></i> 平安咭掃描</div>
+                <div class="section-note">已預留本地 OCR 接口 / 卡面資訊自動帶入</div>
+              </div>
+              <div class="scan-card">
+                <div class="scan-stage">
+                  <div class="scan-core">
+                    <div class="scan-icon"><i class="fa-solid fa-expand"></i></div>
+                    <h2>對準平安咭進行掃描</h2>
+                    <p>系統會自動識別持卡人姓名、平安咭號碼與過期日，並同步寫入登記表單。</p>
+                    <div class="action-row">
+                      <button class="button button-primary" type="button" id="scanButton"><i class="fa-solid fa-bolt"></i> 開始掃描</button>
+                    </div>
+                  </div>
+                </div>
+                <aside class="scan-result">
+                  <div class="status-badge status-ok" id="scanStatus"><i class="fa-solid fa-circle-check"></i> 待掃描</div>
+                  <h3 class="result-title">識別結果面板</h3>
+                  <p class="result-text">掃描完成後會於此處顯示卡面資訊，職員可確認後再提交登記。</p>
+                  <div class="meta-list">
+                    <div class="meta-item"><span>持卡人姓名</span><span id="scanName">未識別</span></div>
+                    <div class="meta-item"><span>平安咭號碼</span><span id="scanSafetyNo">未識別</span></div>
+                    <div class="meta-item"><span>平安咭過期日</span><span id="scanExpiry">未識別</span></div>
+                    <div class="meta-item"><span>卡面狀態</span><span id="scanCardStatus">等待掃描</span></div>
+                  </div>
+                </aside>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="section-head">
+                <div class="section-title"><i class="fa-solid fa-clipboard-list"></i> 工人證登記表</div>
+                <div class="section-note">必填欄位完成後即可建立入場記錄</div>
+              </div>
+              <div class="form-grid">
+                <div class="field">
+                  <label for="workerName">姓名</label>
+                  <input id="workerName" type="text" placeholder="自動帶入或手動輸入">
+                </div>
+                <div class="field">
+                  <label for="phone">聯絡電話</label>
+                  <input id="phone" type="tel" placeholder="例如 9123 4567">
+                </div>
+                <div class="field">
+                  <label for="dob">出生日期</label>
+                  <input id="dob" type="date">
+                </div>
+                <div class="field">
+                  <label for="gender">性別</label>
+                  <select id="gender">
+                    <option value="">請選擇</option>
+                    <option>男</option>
+                    <option>女</option>
+                    <option>其他</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="workerId">工作證編號</label>
+                  <input id="workerId" type="text" placeholder="例如 WP-240315">
+                </div>
+                <div class="field">
+                  <label for="workerType">工人證類型</label>
+                  <select id="workerType">
+                    <option>長期</option>
+                    <option>臨期</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="accessWindow">有效出入時間</label>
+                  <input id="accessWindow" type="text" value="09:00 - 18:00">
+                </div>
+                <div class="field">
+                  <label for="purpose">出入目的</label>
+                  <select id="purpose">
+                    <option>維修工程</option>
+                    <option>設備巡檢</option>
+                    <option>清潔保養</option>
+                    <option>搬運物資</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="role">職別</label>
+                  <input id="role" type="text" placeholder="例如 水電技工">
+                </div>
+                <div class="field">
+                  <label for="company">所屬機構</label>
+                  <input id="company" type="text" placeholder="例如 宏信工程有限公司">
+                </div>
+                <div class="field">
+                  <label for="safetyNo">平安咭號碼</label>
+                  <input id="safetyNo" type="text" placeholder="掃描後自動帶入">
+                </div>
+                <div class="field">
+                  <label for="safetyExpiry">平安咭過期日</label>
+                  <input id="safetyExpiry" type="date">
+                </div>
+                <div class="field full">
+                  <label for="remark">備註</label>
+                  <textarea id="remark" placeholder="例如：到 3 座機房更換電錶模組"></textarea>
+                </div>
+              </div>
+              <p class="hint">系統提交時會自動寫入入場時間。如平安咭已過期，系統將彈出提示讓職員確認。</p>
+              <div class="action-row">
+                <button class="button button-primary" type="button" id="submitButton"><i class="fa-solid fa-circle-plus"></i> 提交登記</button>
+              </div>
+            </section>
+          </div>
+
+          <div class="column">
+            <section class="panel">
+              <div class="section-head">
+                <div class="section-title"><i class="fa-solid fa-chart-line"></i> 即時概況</div>
+                <div class="section-note">當前班次</div>
+              </div>
+              <div class="stat-grid">
+                <div class="stat-card">
+                  <div class="stat-label">今日登記</div>
+                  <div class="stat-value" id="statTotal">12</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-label">場內人數</div>
+                  <div class="stat-value" id="statInside">8</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-label">長期證</div>
+                  <div class="stat-value" id="statLong">7</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-label">臨期證</div>
+                  <div class="stat-value" id="statTemp">5</div>
+                </div>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="section-head">
+                <div class="section-title"><i class="fa-solid fa-shield-halved"></i> 風控提示</div>
+                <div class="section-note">登記前核對</div>
+              </div>
+              <div class="mini-card">
+                <h4 class="mini-title">平安咭有效性</h4>
+                <p class="mini-text" id="riskText">尚未掃描證件。掃描後將檢查是否已過期，並提示是否允許繼續登記。</p>
+              </div>
+              <div class="mini-card">
+                <h4 class="mini-title">現場操作建議</h4>
+                <p class="mini-text">建議將常用機構、職別與出入目的預設為下拉選單，減少 iPad 鍵盤輸入。</p>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="section-head">
+                <div class="section-title"><i class="fa-solid fa-clock-rotate-left"></i> 最近記錄</div>
+                <div class="section-note">最新 3 筆</div>
+              </div>
+              <div class="timeline" id="recentTimeline"></div>
+            </section>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" id="recordsView">
+        <div class="records-layout">
+          <section class="panel">
+            <div class="section-head">
+              <div class="section-title"><i class="fa-solid fa-database"></i> 登記記錄列表</div>
+              <div class="section-note">可按姓名、證號或狀態搜尋</div>
+            </div>
+            <div class="toolbar">
+              <div class="search-wrap">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input id="searchInput" type="text" placeholder="搜尋姓名、工作證編號、電話">
+              </div>
+              <select id="statusFilter">
+                <option value="all">全部狀態</option>
+                <option value="inside">場內</option>
+                <option value="exited">已離場</option>
+              </select>
+              <button class="button button-secondary" type="button" id="refreshButton"><i class="fa-solid fa-arrows-rotate"></i> 更新</button>
+            </div>
+            <div class="filter-row">
+              <button class="filter-chip active" type="button" data-type="all">全部</button>
+              <button class="filter-chip" type="button" data-type="長期">長期證</button>
+              <button class="filter-chip" type="button" data-type="臨期">臨期證</button>
+            </div>
+            <div class="list-head">
+              <div>工人資料</div>
+              <div>工作資料</div>
+              <div>出入時間</div>
+              <div>狀態</div>
+            </div>
+            <div class="record-list" id="recordList"></div>
+          </section>
+
+          <section class="panel">
+            <div class="section-head">
+              <div class="section-title"><i class="fa-solid fa-file-waveform"></i> 記錄詳情</div>
+              <div class="section-note">點擊左側記錄查看</div>
+            </div>
+            <div class="empty-state" id="emptyDetail">
+              <div>
+                <i class="fa-regular fa-folder-open"></i>
+                <div>尚未選取任何登記記錄</div>
+              </div>
+            </div>
+            <div class="detail-panel" id="detailPanel" hidden>
+              <div class="detail-top">
+                <div class="detail-hero">
+                  <div class="detail-avatar"><i class="fa-solid fa-user"></i></div>
+                  <div>
+                    <div class="detail-name" id="detailName">-</div>
+                    <div class="detail-sub" id="detailSub">-</div>
+                    <div class="detail-id" id="detailRecordId">-</div>
+                  </div>
+                </div>
+                <div id="detailStatus"></div>
+              </div>
+              <div class="detail-grid" id="detailGrid"></div>
+              <div class="section-head" style="margin-top: 8px;">
+                <div class="section-title"><i class="fa-solid fa-timeline"></i> 時間軸</div>
+                <div class="section-note">系統追蹤</div>
+              </div>
+              <div class="timeline" id="detailTimeline"></div>
+              <div class="action-row" style="margin-top: 16px;">
+                <button class="button button-warning" type="button" id="exitButton"><i class="fa-solid fa-right-from-bracket"></i> 登記離場</button>
+              </div>
+            </div>
+          </section>
+        </div>
+      </section>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="modal" id="expiryModal">
+    <div class="modal-card">
+      <h3>平安咭已過期</h3>
+      <p>系統識別到此平安咭已超過有效日期。請確認是否仍允許建立登記記錄。</p>
+      <div class="action-row">
+        <button class="button button-warning" type="button" id="confirmExpiredButton">仍然提交</button>
+        <button class="button button-ghost" type="button" id="cancelExpiredButton">返回檢查</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const sampleCards = [
+      {
+        name: "陳志明",
+        safetyNo: "HC-4821-8830",
+        safetyExpiry: "2027-06-30",
+        phone: "9123 4567",
+        dob: "1987-04-18",
+        gender: "男",
+        workerId: "WP-240315",
+        workerType: "長期",
+        accessWindow: "08:30 - 18:00",
+        purpose: "維修工程",
+        role: "水電技工",
+        company: "宏信工程有限公司",
+        remark: "前往 3 座天台檢查水泵控制箱"
+      },
+      {
+        name: "黃麗珊",
+        safetyNo: "HC-1944-2351",
+        safetyExpiry: "2024-09-15",
+        phone: "6234 7789",
+        dob: "1991-11-02",
+        gender: "女",
+        workerId: "TP-881204",
+        workerType: "臨期",
+        accessWindow: "13:00 - 18:00",
+        purpose: "設備巡檢",
+        role: "冷氣保養技術員",
+        company: "啟峯機電服務有限公司",
+        remark: "檢查會所冷氣出風溫度"
+      }
+    ];
+
+    const records = [
+      {
+        id: "REC-20260413-001",
+        name: "李國榮",
+        phone: "9654 2201",
+        dob: "1982-01-10",
+        gender: "男",
+        workerId: "WP-552301",
+        workerType: "長期",
+        accessWindow: "08:00 - 19:00",
+        purpose: "維修工程",
+        role: "電力技工",
+        company: "城建機電工程",
+        safetyNo: "HC-3381-2190",
+        safetyExpiry: "2027-03-15",
+        entryTime: "09:12",
+        exitTime: "--",
+        status: "inside",
+        remark: "B1 配電房巡檢",
+        timeline: [
+          { title: "建立登記", time: "09:12", desc: "前台職員完成入場核驗" },
+          { title: "完成掃描", time: "09:10", desc: "平安咭 OCR 核對成功" }
+        ]
+      },
+      {
+        id: "REC-20260413-002",
+        name: "何俊傑",
+        phone: "9780 1148",
+        dob: "1989-07-22",
+        gender: "男",
+        workerId: "TP-220918",
+        workerType: "臨期",
+        accessWindow: "10:00 - 16:00",
+        purpose: "清潔保養",
+        role: "高空清潔員",
+        company: "遠峰清潔服務",
+        safetyNo: "HC-5510-6734",
+        safetyExpiry: "2026-12-08",
+        entryTime: "10:24",
+        exitTime: "14:16",
+        status: "exited",
+        remark: "5 座外牆玻璃保養",
+        timeline: [
+          { title: "完成離場", time: "14:16", desc: "前台職員確認工具帶離" },
+          { title: "建立登記", time: "10:24", desc: "臨期工作證核發完成" }
+        ]
+      },
+      {
+        id: "REC-20260413-003",
+        name: "梁美儀",
+        phone: "6822 9304",
+        dob: "1994-05-19",
+        gender: "女",
+        workerId: "WP-104612",
+        workerType: "長期",
+        accessWindow: "09:00 - 18:00",
+        purpose: "設備巡檢",
+        role: "弱電工程師",
+        company: "維安智能系統",
+        safetyNo: "HC-4003-5199",
+        safetyExpiry: "2028-01-20",
+        entryTime: "11:02",
+        exitTime: "--",
+        status: "inside",
+        remark: "檢查停車場攝錄系統",
+        timeline: [
+          { title: "建立登記", time: "11:02", desc: "系統自動同步工人資料" },
+          { title: "完成掃描", time: "11:00", desc: "平安咭資訊與名單一致" }
+        ]
+      }
+    ];
+
+    const fields = {
+      workerName: document.getElementById("workerName"),
+      phone: document.getElementById("phone"),
+      dob: document.getElementById("dob"),
+      gender: document.getElementById("gender"),
+      workerId: document.getElementById("workerId"),
+      workerType: document.getElementById("workerType"),
+      accessWindow: document.getElementById("accessWindow"),
+      purpose: document.getElementById("purpose"),
+      role: document.getElementById("role"),
+      company: document.getElementById("company"),
+      safetyNo: document.getElementById("safetyNo"),
+      safetyExpiry: document.getElementById("safetyExpiry"),
+      remark: document.getElementById("remark")
+    };
+
+    const loginScreen = document.getElementById("loginScreen");
+    const appShell = document.getElementById("appShell");
+    const loginButton = document.getElementById("loginButton");
+    const loginMessage = document.getElementById("loginMessage");
+    const staffUsername = document.getElementById("staffUsername");
+    const staffPassword = document.getElementById("staffPassword");
+    const staffSiteCode = document.getElementById("staffSiteCode");
+    const staffIdentity = document.getElementById("staffIdentity");
+    const scanButton = document.getElementById("scanButton");
+    const submitButton = document.getElementById("submitButton");
+    const recordList = document.getElementById("recordList");
+    const recentTimeline = document.getElementById("recentTimeline");
+    const searchInput = document.getElementById("searchInput");
+    const statusFilter = document.getElementById("statusFilter");
+    const refreshButton = document.getElementById("refreshButton");
+    const tabs = Array.from(document.querySelectorAll(".tab"));
+    const views = {
+      registerView: document.getElementById("registerView"),
+      recordsView: document.getElementById("recordsView")
+    };
+    const typeChips = Array.from(document.querySelectorAll(".filter-chip"));
+    const liveTime = document.getElementById("liveTime");
+    const expiryModal = document.getElementById("expiryModal");
+    const confirmExpiredButton = document.getElementById("confirmExpiredButton");
+    const cancelExpiredButton = document.getElementById("cancelExpiredButton");
+    const exitButton = document.getElementById("exitButton");
+    const emptyDetail = document.getElementById("emptyDetail");
+    const detailPanel = document.getElementById("detailPanel");
+    const detailName = document.getElementById("detailName");
+    const detailSub = document.getElementById("detailSub");
+    const detailRecordId = document.getElementById("detailRecordId");
+    const detailStatus = document.getElementById("detailStatus");
+    const detailGrid = document.getElementById("detailGrid");
+    const detailTimeline = document.getElementById("detailTimeline");
+    const statTotal = document.getElementById("statTotal");
+    const statInside = document.getElementById("statInside");
+    const statLong = document.getElementById("statLong");
+    const statTemp = document.getElementById("statTemp");
+    const riskText = document.getElementById("riskText");
+
+    const scanName = document.getElementById("scanName");
+    const scanSafetyNo = document.getElementById("scanSafetyNo");
+    const scanExpiry = document.getElementById("scanExpiry");
+    const scanCardStatus = document.getElementById("scanCardStatus");
+    const scanStatus = document.getElementById("scanStatus");
+
+    const ENABLE_MOCK_BACKEND = window.__ENABLE_MOCK_BACKEND__ ?? true;
+    const LOGIN_API_ENDPOINT = window.__LOGIN_API_ENDPOINT__ || "/api/staff/login";
+    const RECORD_SYNC_API_ENDPOINT = window.__RECORD_SYNC_API_ENDPOINT__ || "/api/worker-registration-records";
+    const BACKEND_RECORD_DEFAULTS = window.__BACKEND_RECORD_DEFAULTS__ || {
+      EstateId: "",
+      Building: "",
+      Floor: "",
+      Unit: "",
+      UserId: "",
+      StartTime: "",
+      EndTime: "",
+      AccessReasonId: "",
+      WorkerPassClassKeyId: "",
+      AccessPositionId: "",
+      ImgeUrl: "",
+      OctopusNo: "",
+      CompanyChi: "",
+      Organization: ""
+    };
+    const OCR_ENDPOINT = "http://192.168.4.68:8000/docs-/v1/completions";
+
+    let currentCardIndex = 0;
+    let currentTypeFilter = "all";
+    let selectedRecordId = null;
+    let pendingSubmission = null;
+    let staffSession = null;
+
+    function formatNow() {
+      return new Date().toLocaleTimeString("zh-HK", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false
+      });
+    }
+
+    function updateLiveTime() {
+      liveTime.textContent = formatNow();
+    }
+
+    function setLoginMessage(message, type) {
+      loginMessage.textContent = message;
+      loginMessage.className = "login-message" + (type ? " " + type : "");
+    }
+
+    function setAuthenticatedState(session) {
+      staffSession = session;
+      staffIdentity.textContent = session.displayName + " / " + session.siteCode;
+      loginScreen.hidden = true;
+      appShell.hidden = false;
+      updateLiveTime();
+    }
+
+    function formatDateTimeForApi(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      const hours = String(date.getHours()).padStart(2, "0");
+      const minutes = String(date.getMinutes()).padStart(2, "0");
+      const seconds = String(date.getSeconds()).padStart(2, "0");
+      return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    }
+
+    async function loginStaffAccount(credentials) {
+      if (ENABLE_MOCK_BACKEND) {
+        return {
+          success: true,
+          token: "demo-token",
+          userId: credentials.username,
+          displayName: "陳主任",
+          siteCode: credentials.siteCode
+        };
+      }
+
+      const response = await fetch(LOGIN_API_ENDPOINT, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          username: credentials.username,
+          password: credentials.password,
+          siteCode: credentials.siteCode
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error("Login request failed: " + response.status);
+      }
+
+      return response.json();
+    }
+
+    function buildRecordSyncPayload(record, action) {
+      return {
+        EstateId: record.estateId ?? BACKEND_RECORD_DEFAULTS.EstateId ?? "",
+        Building: record.building ?? BACKEND_RECORD_DEFAULTS.Building ?? "",
+        Floor: record.floor ?? BACKEND_RECORD_DEFAULTS.Floor ?? "",
+        Unit: record.unit ?? BACKEND_RECORD_DEFAULTS.Unit ?? "",
+        UserId: record.userId ?? BACKEND_RECORD_DEFAULTS.UserId ?? "",
+        WorkerType: record.workerType ?? "",
+        StartTime: record.startTime ?? BACKEND_RECORD_DEFAULTS.StartTime ?? "",
+        EndTime: record.endTime ?? BACKEND_RECORD_DEFAULTS.EndTime ?? "",
+        AccessReasonId: record.accessReasonId ?? BACKEND_RECORD_DEFAULTS.AccessReasonId ?? "",
+        WorkerPassClassKeyId: record.workerPassClassKeyId ?? BACKEND_RECORD_DEFAULTS.WorkerPassClassKeyId ?? "",
+        AccessPositionId: record.accessPositionId ?? BACKEND_RECORD_DEFAULTS.AccessPositionId ?? "",
+        UserNameChi: record.name ?? "",
+        WorkPermitNumber: record.workerId ?? "",
+        Telphone: record.phone ?? "",
+        Gender: record.gender ?? "",
+        ImgeUrl: record.imageUrl ?? BACKEND_RECORD_DEFAULTS.ImgeUrl ?? "",
+        Position: record.role ?? "",
+        CompanyChi: record.companyChi ?? record.company ?? BACKEND_RECORD_DEFAULTS.CompanyChi ?? "",
+        Organization: record.organization ?? record.company ?? BACKEND_RECORD_DEFAULTS.Organization ?? "",
+        IDNo: record.safetyNo ?? "",
+        IDNoExpirationDate: record.safetyExpiry ?? "",
+        OctopusNo: record.octopusNo ?? BACKEND_RECORD_DEFAULTS.OctopusNo ?? "",
+        RemarkChi: record.remark ?? "",
+        SyncAction: action,
+        RecordId: record.id,
+        BirthDate: record.dob,
+        AccessTimeWindow: record.accessWindow,
+        AccessPurpose: record.purpose,
+        EntryTime: record.entryTime,
+        ExitTime: record.exitTime,
+        Status: record.status,
+        StaffUserId: staffSession?.userId || "",
+        StaffDisplayName: staffSession?.displayName || "",
+        SiteCode: staffSession?.siteCode || ""
+      };
+    }
+
+    window.buildRecordSyncPayload = buildRecordSyncPayload;
+
+    async function syncRecordToBackend(record, action) {
+      const payload = buildRecordSyncPayload(record, action);
+
+      if (ENABLE_MOCK_BACKEND) {
+        return {
+          success: true,
+          payload
+        };
+      }
+
+      const response = await fetch(RECORD_SYNC_API_ENDPOINT, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(staffSession?.token ? { Authorization: "Bearer " + staffSession.token } : {})
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        throw new Error("Record sync failed: " + response.status);
+      }
+
+      return response.json();
+    }
+
+    async function requestOCRScan(imageData) {
+      const response = await fetch(OCR_ENDPOINT, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: "safety-card-ocr",
+          input: imageData
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error("OCR request failed: " + response.status);
+      }
+
+      return response.json();
+    }
+
+    function parseOCRContent(payload) {
+      const raw = payload?.choices?.[0]?.message?.content
+        || payload?.choices?.[0]?.text
+        || payload?.output_text
+        || payload?.data
+        || payload;
+
+      if (typeof raw === "string") {
+        try {
+          return JSON.parse(raw);
+        } catch (error) {
+          return {};
+        }
+      }
+
+      return raw || {};
+    }
+
+    function normalizeOCRFields(payload) {
+      const data = parseOCRContent(payload);
+      return {
+        name: data.name || data.holder_name || data.card_holder_name,
+        safetyNo: data.safetyNo || data.safety_no || data.card_number || data.number,
+        safetyExpiry: data.safetyExpiry || data.safety_expiry || data.expiry_date || data.expiryDate
+      };
+    }
+
+    window.scanSafetyCardWithOCR = async function scanSafetyCardWithOCR(imageData) {
+      const payload = await requestOCRScan(imageData);
+      const fieldsFromOCR = normalizeOCRFields(payload);
+      applyCardData(fieldsFromOCR);
+      return payload;
+    };
+
+    function applyCardData(card) {
+      fields.workerName.value = card.name ?? fields.workerName.value;
+      fields.phone.value = card.phone ?? fields.phone.value;
+      fields.dob.value = card.dob ?? fields.dob.value;
+      fields.gender.value = card.gender ?? fields.gender.value;
+      fields.workerId.value = card.workerId ?? fields.workerId.value;
+      fields.workerType.value = card.workerType ?? fields.workerType.value;
+      fields.accessWindow.value = card.accessWindow ?? fields.accessWindow.value;
+      fields.purpose.value = card.purpose ?? fields.purpose.value;
+      fields.role.value = card.role ?? fields.role.value;
+      fields.company.value = card.company ?? fields.company.value;
+      fields.safetyNo.value = card.safetyNo ?? fields.safetyNo.value;
+      fields.safetyExpiry.value = card.safetyExpiry ?? fields.safetyExpiry.value;
+      fields.remark.value = card.remark ?? fields.remark.value;
+
+      scanName.textContent = fields.workerName.value || "未識別";
+      scanSafetyNo.textContent = fields.safetyNo.value || "未識別";
+      scanExpiry.textContent = fields.safetyExpiry.value || "未識別";
+
+      const expired = fields.safetyExpiry.value
+        ? new Date(fields.safetyExpiry.value) < new Date(new Date().toDateString())
+        : false;
+      scanCardStatus.textContent = expired ? "已過期，需人工確認" : "有效，可直接帶入";
+      scanStatus.className = "status-badge " + (expired ? "status-warning" : "status-ok");
+      scanStatus.innerHTML = expired
+        ? '<i class="fa-solid fa-triangle-exclamation"></i> 已識別 / 過期'
+        : '<i class="fa-solid fa-circle-check"></i> 已識別 / 有效';
+      riskText.textContent = expired
+        ? "此平安咭已過期，提交登記前需要職員額外確認是否允許進場。"
+        : "此平安咭仍在有效期內，可直接完成登記。";
+    }
+
+    function resetForm() {
+      Object.values(fields).forEach(function (field) {
+        if (field.tagName === "SELECT") {
+          field.selectedIndex = 0;
+        } else {
+          field.value = "";
+        }
+      });
+
+      fields.workerType.value = "長期";
+      fields.accessWindow.value = "09:00 - 18:00";
+      fields.purpose.value = "維修工程";
+      scanName.textContent = "未識別";
+      scanSafetyNo.textContent = "未識別";
+      scanExpiry.textContent = "未識別";
+      scanCardStatus.textContent = "等待掃描";
+      scanStatus.className = "status-badge status-ok";
+      scanStatus.innerHTML = '<i class="fa-solid fa-circle-check"></i> 待掃描';
+      riskText.textContent = "尚未掃描證件。掃描後將檢查是否已過期，並提示是否允許繼續登記。";
+    }
+
+    function computeStats() {
+      statTotal.textContent = records.length;
+      statInside.textContent = records.filter(function (item) { return item.status === "inside"; }).length;
+      statLong.textContent = records.filter(function (item) { return item.workerType === "長期"; }).length;
+      statTemp.textContent = records.filter(function (item) { return item.workerType === "臨期"; }).length;
+    }
+
+    function renderRecentTimeline() {
+      recentTimeline.innerHTML = "";
+      records.slice(0, 3).forEach(function (record) {
+        const item = document.createElement("div");
+        item.className = "timeline-item";
+        item.innerHTML = `
+          <div>
+            <strong>${record.name}</strong>
+            <span>${record.company} / ${record.role}</span>
+          </div>
+          <small>${record.entryTime}</small>
+        `;
+        recentTimeline.appendChild(item);
+      });
+    }
+
+    function getStatusTag(status) {
+      return status === "inside"
+        ? '<span class="record-tag tag-inside">場內</span>'
+        : '<span class="record-tag tag-exit">已離場</span>';
+    }
+
+    function getTypeTag(type) {
+      return type === "長期"
+        ? '<span class="record-tag tag-long">長期證</span>'
+        : '<span class="record-tag tag-temp">臨期證</span>';
+    }
+
+    function filteredRecords() {
+      const keyword = searchInput.value.trim().toLowerCase();
+      return records.filter(function (record) {
+        const matchesKeyword = keyword
+          ? [record.name, record.workerId, record.phone, record.company, record.role].join(" ").toLowerCase().includes(keyword)
+          : true;
+        const matchesStatus = statusFilter.value === "all" ? true : record.status === statusFilter.value;
+        const matchesType = currentTypeFilter === "all" ? true : record.workerType === currentTypeFilter;
+        return matchesKeyword && matchesStatus && matchesType;
+      });
+    }
+
+    function renderRecordList() {
+      const list = filteredRecords();
+      recordList.innerHTML = "";
+
+      if (!list.length) {
+        const empty = document.createElement("div");
+        empty.className = "empty-state";
+        empty.innerHTML = '<div><i class="fa-regular fa-file-circle-xmark"></i><div>沒有符合條件的登記記錄</div></div>';
+        recordList.appendChild(empty);
+        emptyDetail.hidden = false;
+        detailPanel.hidden = true;
+        return;
+      }
+
+      if (!selectedRecordId || !list.some(function (record) { return record.id === selectedRecordId; })) {
+        selectedRecordId = list[0].id;
+      }
+
+      list.forEach(function (record) {
+        const item = document.createElement("button");
+        item.type = "button";
+        item.className = "record-item" + (record.id === selectedRecordId ? " active" : "");
+        item.innerHTML = `
+          <div class="person">
+            <div class="avatar">${record.name.charAt(0)}</div>
+            <div>
+              <h4>${record.name}</h4>
+              <p>${record.workerId} / ${record.phone}</p>
+            </div>
+          </div>
+          <div class="record-cell">
+            <div>${record.company}</div>
+            <div class="record-cell soft">${record.role} ${getTypeTag(record.workerType)}</div>
+          </div>
+          <div class="record-cell">
+            <div>入場 ${record.entryTime}</div>
+            <div class="record-cell soft">離場 ${record.exitTime}</div>
+          </div>
+          <div>${getStatusTag(record.status)}</div>
+        `;
+        item.addEventListener("click", function () {
+          selectedRecordId = record.id;
+          renderRecordList();
+          renderDetail(record);
+        });
+        recordList.appendChild(item);
+      });
+
+      const selected = records.find(function (record) { return record.id === selectedRecordId; });
+      if (selected) {
+        renderDetail(selected);
+      }
+    }
+
+    function renderDetail(record) {
+      emptyDetail.hidden = true;
+      detailPanel.hidden = false;
+
+      detailName.textContent = record.name;
+      detailSub.textContent = record.company + " / " + record.role;
+      detailRecordId.textContent = record.id;
+      detailStatus.innerHTML = getStatusTag(record.status);
+
+      detailGrid.innerHTML = [
+        ["聯絡電話", record.phone],
+        ["出生日期", record.dob],
+        ["性別", record.gender],
+        ["工作證編號", record.workerId],
+        ["工人證類型", record.workerType],
+        ["有效出入時間", record.accessWindow],
+        ["出入目的", record.purpose],
+        ["平安咭號碼", record.safetyNo],
+        ["平安咭過期日", record.safetyExpiry],
+        ["備註", record.remark || "-"],
+        ["入場時間", record.entryTime],
+        ["離場時間", record.exitTime]
+      ].map(function (item) {
+        return `<div class="detail-item"><span>${item[0]}</span><span>${item[1]}</span></div>`;
+      }).join("");
+
+      detailTimeline.innerHTML = "";
+      record.timeline.forEach(function (entry) {
+        const row = document.createElement("div");
+        row.className = "timeline-item";
+        row.innerHTML = `
+          <div>
+            <strong>${entry.title}</strong>
+            <span>${entry.desc}</span>
+          </div>
+          <small>${entry.time}</small>
+        `;
+        detailTimeline.appendChild(row);
+      });
+
+      exitButton.style.display = record.status === "inside" ? "inline-flex" : "none";
+    }
+
+    function setView(viewName) {
+      tabs.forEach(function (tab) {
+        tab.classList.toggle("active", tab.dataset.view === viewName);
+      });
+
+      Object.keys(views).forEach(function (key) {
+        views[key].classList.toggle("active", key === viewName);
+      });
+    }
+
+    function validateForm() {
+      const required = [
+        fields.workerName,
+        fields.phone,
+        fields.dob,
+        fields.gender,
+        fields.workerId,
+        fields.role,
+        fields.company,
+        fields.safetyNo,
+        fields.safetyExpiry
+      ];
+
+      return required.every(function (field) {
+        return field.value.trim() !== "";
+      });
+    }
+
+    function createRecordFromForm() {
+      const now = formatNow();
+      const nowDate = new Date();
+      return {
+        id: "REC-" + Date.now(),
+        name: fields.workerName.value.trim(),
+        phone: fields.phone.value.trim(),
+        dob: fields.dob.value,
+        gender: fields.gender.value,
+        workerId: fields.workerId.value.trim(),
+        workerType: fields.workerType.value,
+        accessWindow: fields.accessWindow.value.trim(),
+        purpose: fields.purpose.value,
+        role: fields.role.value.trim(),
+        company: fields.company.value.trim(),
+        safetyNo: fields.safetyNo.value.trim(),
+        safetyExpiry: fields.safetyExpiry.value,
+        startTime: formatDateTimeForApi(nowDate),
+        endTime: "",
+        entryTime: now,
+        exitTime: "--",
+        status: "inside",
+        remark: fields.remark.value.trim(),
+        userId: BACKEND_RECORD_DEFAULTS.UserId || "",
+        estateId: BACKEND_RECORD_DEFAULTS.EstateId || "",
+        building: BACKEND_RECORD_DEFAULTS.Building || "",
+        floor: BACKEND_RECORD_DEFAULTS.Floor || "",
+        unit: BACKEND_RECORD_DEFAULTS.Unit || "",
+        accessReasonId: BACKEND_RECORD_DEFAULTS.AccessReasonId || "",
+        workerPassClassKeyId: BACKEND_RECORD_DEFAULTS.WorkerPassClassKeyId || "",
+        accessPositionId: BACKEND_RECORD_DEFAULTS.AccessPositionId || "",
+        imageUrl: BACKEND_RECORD_DEFAULTS.ImgeUrl || "",
+        companyChi: BACKEND_RECORD_DEFAULTS.CompanyChi || fields.company.value.trim(),
+        organization: BACKEND_RECORD_DEFAULTS.Organization || fields.company.value.trim(),
+        octopusNo: BACKEND_RECORD_DEFAULTS.OctopusNo || "",
+        timeline: [
+          { title: "建立登記", time: now, desc: "職員於 iPad 完成工人入場登記" },
+          { title: "掃描核驗", time: now, desc: "平安咭資料已同步帶入表單" }
+        ]
+      };
+    }
+
+    async function submitRecord(record) {
+      await syncRecordToBackend(record, "create");
+      records.unshift(record);
+      selectedRecordId = record.id;
+      computeStats();
+      renderRecentTimeline();
+      renderRecordList();
+      setView("recordsView");
+      resetForm();
+    }
+
+    scanButton.addEventListener("click", async function () {
+      const imageData = window.__OCR_IMAGE__;
+
+      if (imageData) {
+        try {
+          await window.scanSafetyCardWithOCR(imageData);
+          return;
+        } catch (error) {
+          console.error("OCR scan failed, fallback to demo data.", error);
+        }
+      }
+
+      const card = sampleCards[currentCardIndex % sampleCards.length];
+      currentCardIndex += 1;
+      applyCardData(card);
+    });
+
+    loginButton.addEventListener("click", async function () {
+      const username = staffUsername.value.trim();
+      const password = staffPassword.value.trim();
+      const siteCode = staffSiteCode.value.trim();
+
+      if (!username || !password || !siteCode) {
+        setLoginMessage("請輸入職員帳號、密碼及值守站點。", "error");
+        return;
+      }
+
+      loginButton.disabled = true;
+      setLoginMessage("登入驗證中...", "");
+
+      try {
+        const result = await loginStaffAccount({ username, password, siteCode });
+        const success = result.success !== false;
+        if (!success) {
+          throw new Error(result.message || "登入失敗");
+        }
+
+        setLoginMessage("登入成功，正在進入系統...", "success");
+        setAuthenticatedState({
+          token: result.token || "",
+          userId: result.userId || username,
+          displayName: result.displayName || username,
+          siteCode: result.siteCode || siteCode
+        });
+      } catch (error) {
+        setLoginMessage(error.message || "登入失敗，請稍後重試。", "error");
+      } finally {
+        loginButton.disabled = false;
+      }
+    });
+
+    submitButton.addEventListener("click", async function () {
+      if (!validateForm()) {
+        window.alert("請先完成必填欄位，再提交登記。");
+        return;
+      }
+
+      const record = createRecordFromForm();
+      const expired = new Date(record.safetyExpiry) < new Date(new Date().toDateString());
+      if (expired) {
+        pendingSubmission = record;
+        expiryModal.classList.add("show");
+        return;
+      }
+
+      submitButton.disabled = true;
+      try {
+        await submitRecord(record);
+      } catch (error) {
+        window.alert("記錄同步失敗，尚未寫入列表。請檢查後台接口。\n" + (error.message || ""));
+      } finally {
+        submitButton.disabled = false;
+      }
+    });
+
+    confirmExpiredButton.addEventListener("click", async function () {
+      if (pendingSubmission) {
+        confirmExpiredButton.disabled = true;
+        try {
+          await submitRecord(pendingSubmission);
+        } catch (error) {
+          window.alert("記錄同步失敗，尚未寫入列表。請檢查後台接口。\n" + (error.message || ""));
+        } finally {
+          confirmExpiredButton.disabled = false;
+        }
+      }
+      pendingSubmission = null;
+      expiryModal.classList.remove("show");
+    });
+
+    cancelExpiredButton.addEventListener("click", function () {
+      pendingSubmission = null;
+      expiryModal.classList.remove("show");
+    });
+
+    tabs.forEach(function (tab) {
+      tab.addEventListener("click", function () {
+        setView(tab.dataset.view);
+      });
+    });
+
+    typeChips.forEach(function (chip) {
+      chip.addEventListener("click", function () {
+        currentTypeFilter = chip.dataset.type;
+        typeChips.forEach(function (item) {
+          item.classList.toggle("active", item === chip);
+        });
+        renderRecordList();
+      });
+    });
+
+    searchInput.addEventListener("input", renderRecordList);
+    statusFilter.addEventListener("change", renderRecordList);
+    refreshButton.addEventListener("click", renderRecordList);
+
+    exitButton.addEventListener("click", async function () {
+      const record = records.find(function (item) { return item.id === selectedRecordId; });
+      if (!record || record.status === "exited") {
+        return;
+      }
+
+      const previousExitTime = record.exitTime;
+      const previousEndTime = record.endTime;
+      const previousStatus = record.status;
+      record.status = "exited";
+      record.exitTime = formatNow();
+      record.endTime = formatDateTimeForApi(new Date());
+      const exitTimeline = {
+        title: "完成離場",
+        time: record.exitTime,
+        desc: "職員於記錄中心確認工人離場"
+      };
+      record.timeline.unshift(exitTimeline);
+
+      exitButton.disabled = true;
+      try {
+        await syncRecordToBackend(record, "exit");
+        computeStats();
+        renderRecentTimeline();
+        renderRecordList();
+      } catch (error) {
+        record.status = previousStatus;
+        record.exitTime = previousExitTime;
+        record.endTime = previousEndTime;
+        record.timeline.shift();
+        window.alert("離場同步失敗，記錄未更新。\n" + (error.message || ""));
+      } finally {
+        exitButton.disabled = false;
+      }
+    });
+
+    updateLiveTime();
+    setInterval(updateLiveTime, 1000);
+    computeStats();
+    renderRecentTimeline();
+    renderRecordList();
+    resetForm();
+  </script>
+</body>
+</html>

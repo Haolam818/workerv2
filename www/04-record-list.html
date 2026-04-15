@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>工人證登記 - 記錄列表頁</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <style>
+    :root {
+      --primary-color: #3370ff;
+      --accent-color: #14b8a6;
+      --background-primary: #f4f7fb;
+      --background-secondary: #ffffff;
+      --text-primary: #172033;
+      --text-secondary: #667085;
+      --border-color: #d9e2f2;
+      --success-color: #12b76a;
+      --warning-color: #f79009;
+      --danger-color: #f04438;
+      --font-family: "Inter", "SF Pro Display", "PingFang TC", sans-serif;
+      --font-size-display: 40px;
+      --font-size-headline: 28px;
+      --font-size-body: 16px;
+      --font-size-caption: 13px;
+      --space-1: 8px;
+      --space-2: 16px;
+      --space-3: 24px;
+      --space-4: 32px;
+      --radius-small: 12px;
+      --radius-medium: 20px;
+      --radius-large: 28px;
+      --shadow-small: 0 8px 24px rgba(15, 23, 42, 0.08);
+      --shadow-medium: 0 20px 48px rgba(15, 23, 42, 0.14);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      font-family: var(--font-family);
+      color: var(--text-primary);
+      background:
+        radial-gradient(circle at top left, rgba(51, 112, 255, 0.18), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(20, 184, 166, 0.12), transparent 24%),
+        linear-gradient(180deg, #f7f9fd 0%, #eef3fa 100%);
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 0.38) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.38) 1px, transparent 1px);
+      background-size: 36px 36px;
+      pointer-events: none;
+      mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.56), transparent 90%);
+    }
+
+    .ipad-shell {
+      width: min(1180px, 100%);
+      min-height: 834px;
+      padding: 20px;
+      border-radius: 36px;
+      background: rgba(255, 255, 255, 0.74);
+      border: 1px solid rgba(255, 255, 255, 0.72);
+      backdrop-filter: blur(24px);
+      box-shadow: 0 24px 80px rgba(18, 35, 69, 0.16);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 6px 6px 18px;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .brand-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 18px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--primary-color), #1f5bdf);
+      color: #ffffff;
+      box-shadow: 0 12px 24px rgba(51, 112, 255, 0.28);
+    }
+
+    .eyebrow {
+      margin: 0 0 6px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--primary-color);
+    }
+
+    .title {
+      margin: 0;
+      font-size: 28px;
+      line-height: 1.15;
+      font-weight: 800;
+    }
+
+    .subtitle {
+      margin: 8px 0 0;
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--text-secondary);
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .top-pill,
+    .user-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      height: 48px;
+      padding: 0 16px;
+      border-radius: 16px;
+      background: var(--background-secondary);
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-small);
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .top-pill {
+      color: var(--primary-color);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1.28fr 0.72fr;
+      gap: 20px;
+      min-height: 692px;
+      padding-bottom: 92px;
+    }
+
+    .main-column,
+    .side-column {
+      display: grid;
+      gap: 20px;
+      align-content: start;
+    }
+
+    .card {
+      background: var(--background-secondary);
+      border: 1px solid rgba(217, 226, 242, 0.9);
+      border-radius: 26px;
+      box-shadow: var(--shadow-small);
+    }
+
+    .summary-card {
+      padding: 22px;
+      background:
+        linear-gradient(135deg, rgba(51, 112, 255, 0.06), rgba(20, 184, 166, 0.06)),
+        #ffffff;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .summary-item {
+      padding: 18px;
+      border-radius: 20px;
+      background: #f8fbff;
+      border: 1px solid #dce6f7;
+    }
+
+    .summary-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-secondary);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .summary-value {
+      margin-top: 14px;
+      font-size: 24px;
+      line-height: 1.15;
+      font-weight: 800;
+      color: var(--text-primary);
+    }
+
+    .section-card,
+    .side-card {
+      padding: 22px;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 20px;
+      font-weight: 800;
+    }
+
+    .section-title i {
+      width: 40px;
+      height: 40px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      color: var(--primary-color);
+      background: #edf3ff;
+    }
+
+    .section-note {
+      color: var(--text-secondary);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr auto;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .search,
+    .select,
+    .button {
+      height: 52px;
+      border-radius: 16px;
+      font-family: inherit;
+      font-size: 15px;
+    }
+
+    .search,
+    .select {
+      width: 100%;
+      padding: 0 16px;
+      border: 1px solid var(--border-color);
+      background: #fbfcfe;
+      color: var(--text-primary);
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .search:focus,
+    .select:focus {
+      border-color: rgba(51, 112, 255, 0.52);
+      box-shadow: 0 0 0 4px rgba(51, 112, 255, 0.12);
+      background: #ffffff;
+    }
+
+    .search-wrap {
+      position: relative;
+    }
+
+    .search-wrap i {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #8c99b2;
+    }
+
+    .search {
+      padding-left: 44px;
+    }
+
+    .button {
+      padding: 0 20px;
+      border: 0;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .button:hover {
+      transform: translateY(-1px);
+    }
+
+    .button-primary {
+      color: #ffffff;
+      background: linear-gradient(135deg, var(--primary-color), #1f5bdf);
+      box-shadow: 0 14px 28px rgba(51, 112, 255, 0.26);
+    }
+
+    .chip-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+
+    .filter-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: #f5f8ff;
+      border: 1px solid #dce7ff;
+      color: var(--text-secondary);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .filter-chip.active {
+      background: #eef4ff;
+      color: var(--primary-color);
+    }
+
+    .table-card {
+      overflow: hidden;
+      border-radius: 22px;
+      border: 1px solid #e7edf8;
+      background: #fbfcfe;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead th {
+      padding: 16px 14px;
+      text-align: left;
+      font-size: 12px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      background: #f5f8fe;
+      border-bottom: 1px solid #e7edf8;
+    }
+
+    tbody td {
+      padding: 16px 14px;
+      font-size: 14px;
+      border-bottom: 1px solid #edf1f7;
+      vertical-align: top;
+    }
+
+    tbody tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .person {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .person-avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      color: #ffffff;
+      background: linear-gradient(135deg, #1f5bdf, var(--accent-color));
+      flex: 0 0 auto;
+    }
+
+    .person h4 {
+      margin: 0 0 4px;
+      font-size: 15px;
+      font-weight: 800;
+    }
+
+    .person p,
+    .muted {
+      margin: 0;
+      color: var(--text-secondary);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .status-in {
+      color: #027a48;
+      background: #ecfdf3;
+    }
+
+    .status-out {
+      color: #b54708;
+      background: #fff7ed;
+    }
+
+    .status-pending {
+      color: #175cd3;
+      background: #eef4ff;
+    }
+
+    .table-action {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 12px;
+      color: var(--primary-color);
+      background: #eef4ff;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .side-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .side-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 14px 0;
+      border-bottom: 1px solid #edf1f7;
+      font-size: 14px;
+    }
+
+    .side-item:last-child {
+      border-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .side-item span:first-child {
+      color: var(--text-secondary);
+    }
+
+    .side-item span:last-child {
+      text-align: right;
+      font-weight: 700;
+    }
+
+    .activity-list {
+      display: grid;
+      gap: 14px;
+    }
+
+    .activity-item {
+      display: grid;
+      grid-template-columns: 40px 1fr;
+      gap: 12px;
+      align-items: start;
+    }
+
+    .activity-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      background: #f5f8ff;
+      color: var(--primary-color);
+    }
+
+    .activity-item h4 {
+      margin: 0 0 4px;
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .activity-item p {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--text-secondary);
+    }
+
+    .bottom-tabbar {
+      position: absolute;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%);
+      display: inline-grid;
+      grid-template-columns: repeat(2, minmax(160px, 1fr));
+      gap: 10px;
+      padding: 8px;
+      border-radius: 22px;
+      background: rgba(23, 32, 51, 0.88);
+      box-shadow: 0 16px 40px rgba(15, 23, 42, 0.26);
+      z-index: 2;
+    }
+
+    .tab {
+      height: 62px;
+      padding: 0 22px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      color: rgba(255, 255, 255, 0.74);
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .tab.active {
+      color: #ffffff;
+      background: linear-gradient(135deg, rgba(51, 112, 255, 0.92), rgba(31, 91, 223, 0.92));
+    }
+
+    @media (max-width: 1100px) {
+      .layout,
+      .summary-grid,
+      .toolbar {
+        grid-template-columns: 1fr;
+      }
+
+      .topbar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="ipad-shell">
+    <header class="topbar">
+      <div class="brand-group">
+        <div class="brand-icon">
+          <i class="fa-solid fa-rectangle-list"></i>
+        </div>
+        <div>
+          <p class="eyebrow">Record Center</p>
+          <h1 class="title">登記記錄列表</h1>
+          <p class="subtitle">集中查看今日工人出入記錄、在場狀態、聯絡資料及操作職員。</p>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="top-pill">
+          <i class="fa-regular fa-clock"></i>
+          <span id="current-time">--:--</span>
+        </div>
+        <div class="user-chip">
+          <i class="fa-solid fa-user-shield" style="color: var(--primary-color);"></i>
+          陳職員 · 主入口
+        </div>
+      </div>
+    </header>
+
+    <section class="layout">
+      <div class="main-column">
+        <section class="card summary-card">
+          <div class="summary-grid">
+            <div class="summary-item">
+              <div class="summary-label"><i class="fa-solid fa-list-check"></i> 今日總記錄</div>
+              <div class="summary-value">43</div>
+            </div>
+            <div class="summary-item">
+              <div class="summary-label"><i class="fa-solid fa-user-clock"></i> 目前在場</div>
+              <div class="summary-value">12</div>
+            </div>
+            <div class="summary-item">
+              <div class="summary-label"><i class="fa-solid fa-right-from-bracket"></i> 今日離場</div>
+              <div class="summary-value">28</div>
+            </div>
+            <div class="summary-item">
+              <div class="summary-label"><i class="fa-solid fa-circle-exclamation"></i> 待處理</div>
+              <div class="summary-value">3</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card section-card">
+          <div class="section-head">
+            <div class="section-title">
+              <i class="fa-solid fa-filter"></i>
+              <span>記錄篩選與列表</span>
+            </div>
+            <div class="section-note">即時同步</div>
+          </div>
+
+          <div class="toolbar">
+            <div class="search-wrap">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input class="search" type="text" value="張志強 / 工人證編號 / 電話">
+            </div>
+            <select class="select">
+              <option selected>今天 · 全部狀態</option>
+              <option>只看在場</option>
+              <option>只看離場</option>
+              <option>只看待處理</option>
+            </select>
+            <button class="button button-primary" type="button">
+              <i class="fa-solid fa-arrow-rotate-right"></i>
+              重新整理
+            </button>
+          </div>
+
+          <div class="chip-row">
+            <div class="filter-chip active"><i class="fa-solid fa-layer-group"></i> 全部 43</div>
+            <div class="filter-chip"><i class="fa-solid fa-circle-check"></i> 在場 12</div>
+            <div class="filter-chip"><i class="fa-solid fa-circle-stop"></i> 離場 28</div>
+            <div class="filter-chip"><i class="fa-solid fa-bolt"></i> 待跟進 3</div>
+          </div>
+
+          <div class="table-card">
+            <table>
+              <thead>
+                <tr>
+                  <th>工人資料</th>
+                  <th>出入時間</th>
+                  <th>狀態</th>
+                  <th>聯絡電話</th>
+                  <th>操作職員</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <div class="person">
+                      <div class="person-avatar"><i class="fa-solid fa-user"></i></div>
+                      <div>
+                        <h4>張志強</h4>
+                        <p>WK-2026-0184 · 冷氣技工<br>宏信機電工程有限公司</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <div><strong>09:42 入場</strong></div>
+                    <div class="muted">尚未登記離場</div>
+                  </td>
+                  <td><span class="status-badge status-in"><i class="fa-solid fa-circle-check"></i> 在場</span></td>
+                  <td>9123 4567</td>
+                  <td>陳職員</td>
+                  <td><span class="table-action"><i class="fa-solid fa-eye"></i> 查看詳情</span></td>
+                </tr>
+
+                <tr>
+                  <td>
+                    <div class="person">
+                      <div class="person-avatar"><i class="fa-solid fa-user"></i></div>
+                      <div>
+                        <h4>李家明</h4>
+                        <p>WK-2026-0192 · 電工<br>嘉盛工程服務有限公司</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <div><strong>08:18 入場</strong></div>
+                    <div class="muted">11:36 離場</div>
+                  </td>
+                  <td><span class="status-badge status-out"><i class="fa-solid fa-right-from-bracket"></i> 離場</span></td>
+                  <td>6845 2201</td>
+                  <td>王職員</td>
+                  <td><span class="table-action"><i class="fa-solid fa-eye"></i> 查看詳情</span></td>
+                </tr>
+
+                <tr>
+                  <td>
+                    <div class="person">
+                      <div class="person-avatar"><i class="fa-solid fa-user"></i></div>
+                      <div>
+                        <h4>陳文樂</h4>
+                        <p>WK-2026-0201 · 水喉技工<br>進通水務工程公司</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <div><strong>10:04 入場</strong></div>
+                    <div class="muted">待補充出入目的</div>
+                  </td>
+                  <td><span class="status-badge status-pending"><i class="fa-solid fa-pen"></i> 待處理</span></td>
+                  <td>9551 7732</td>
+                  <td>陳職員</td>
+                  <td><span class="table-action"><i class="fa-solid fa-eye"></i> 查看詳情</span></td>
+                </tr>
+
+                <tr>
+                  <td>
+                    <div class="person">
+                      <div class="person-avatar"><i class="fa-solid fa-user"></i></div>
+                      <div>
+                        <h4>黃建輝</h4>
+                        <p>WK-2026-0173 · 保養技工<br>德信設備保養有限公司</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <div><strong>07:55 入場</strong></div>
+                    <div class="muted">12:10 離場</div>
+                  </td>
+                  <td><span class="status-badge status-out"><i class="fa-solid fa-right-from-bracket"></i> 離場</span></td>
+                  <td>6210 9938</td>
+                  <td>何職員</td>
+                  <td><span class="table-action"><i class="fa-solid fa-eye"></i> 查看詳情</span></td>
+                </tr>
+
+                <tr>
+                  <td>
+                    <div class="person">
+                      <div class="person-avatar"><i class="fa-solid fa-user"></i></div>
+                      <div>
+                        <h4>周偉成</h4>
+                        <p>WK-2026-0210 · 工程主管<br>中誠機電工程有限公司</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <div><strong>09:16 入場</strong></div>
+                    <div class="muted">尚未登記離場</div>
+                  </td>
+                  <td><span class="status-badge status-in"><i class="fa-solid fa-circle-check"></i> 在場</span></td>
+                  <td>9784 6611</td>
+                  <td>王職員</td>
+                  <td><span class="table-action"><i class="fa-solid fa-eye"></i> 查看詳情</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
+      <aside class="side-column">
+        <section class="card side-card">
+          <div class="section-head">
+            <div class="section-title" style="font-size: 18px;">
+              <i class="fa-solid fa-chart-column"></i>
+              <span>值班概況</span>
+            </div>
+          </div>
+
+          <div class="side-list">
+            <div class="side-item"><span>今日首筆登記</span><span>07:48 AM</span></div>
+            <div class="side-item"><span>最近一筆更新</span><span>10:12 AM</span></div>
+            <div class="side-item"><span>主入口記錄</span><span>21 筆</span></div>
+            <div class="side-item"><span>後勤入口記錄</span><span>9 筆</span></div>
+            <div class="side-item"><span>停車場崗位</span><span>13 筆</span></div>
+          </div>
+        </section>
+
+        <section class="card side-card">
+          <div class="section-head">
+            <div class="section-title" style="font-size: 18px;">
+              <i class="fa-solid fa-bell"></i>
+              <span>待跟進項目</span>
+            </div>
+          </div>
+
+          <div class="activity-list">
+            <div class="activity-item">
+              <div class="activity-icon"><i class="fa-solid fa-pen"></i></div>
+              <div>
+                <h4>3 筆記錄待補充</h4>
+                <p>主要缺少出入目的或職別資料，建議盡快於現場補錄。</p>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-icon"><i class="fa-solid fa-door-open"></i></div>
+              <div>
+                <h4>2 名工人超時在場</h4>
+                <p>已超出原定有效出入時間，建議聯絡值班職員核對。</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card side-card">
+          <div class="section-head">
+            <div class="section-title" style="font-size: 18px;">
+              <i class="fa-solid fa-bolt"></i>
+              <span>快捷操作</span>
+            </div>
+          </div>
+
+          <div class="activity-list">
+            <div class="activity-item">
+              <div class="activity-icon"><i class="fa-solid fa-id-card"></i></div>
+              <div>
+                <h4>新增工人登記</h4>
+                <p>直接跳轉至掃描與登記頁，開始新一筆記錄。</p>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-icon"><i class="fa-solid fa-file-export"></i></div>
+              <div>
+                <h4>匯出今日列表</h4>
+                <p>按職員、時間或狀態整理，方便後續存檔與核對。</p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </aside>
+    </section>
+
+    <nav class="bottom-tabbar" aria-label="底部導航">
+      <div class="tab">
+        <i class="fa-solid fa-id-card"></i>
+        登記頁
+      </div>
+      <div class="tab active">
+        <i class="fa-solid fa-rectangle-list"></i>
+        記錄列表頁
+      </div>
+    </nav>
+  </main>
+
+  <script>
+    const currentTime = document.getElementById("current-time");
+
+    function updateTime() {
+      const now = new Date();
+      currentTime.textContent = now.toLocaleTimeString("zh-HK", {
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+    }
+
+    updateTime();
+    setInterval(updateTime, 60000);
+  </script>
+</body>
+</html>

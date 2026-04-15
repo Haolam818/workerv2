@@ -1,0 +1,18 @@
+{
+  "id": "/",
+  "short_name": "工人證登記",
+  "name": "工人證登記系統",
+  "icons": [
+    {
+      "src": "https://s3plus.meituan.net/nocode-external/assets/nocode-logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "/www/app.html",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "landscape",
+  "theme_color": "#0f172a",
+  "background_color": "#eef4fb"
+}

@@ -1,0 +1,8 @@
+{
+  "appId": "com.tech.demo",
+  "appName": "MyiPadApp",
+  "webDir": "www",
+  "server": {
+    "index": "ipad-tech-app.html"
+  }
+}
