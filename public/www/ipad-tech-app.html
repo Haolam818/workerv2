@@ -1556,17 +1556,10 @@
       CompanyChi: "",
       Organization: ""
     };
-    const OCR_API_DIRECT = "http://192.168.4.68:8000/docs#/default/create_completion_v1_completions_post";
-    const OCR_API_DIRECT_ORIGIN = (function () {
-      try {
-        return new URL(OCR_API_DIRECT).origin;
-      } catch (e) {
-        return String(OCR_API_DIRECT).split("/docs")[0] || "http://192.168.4.68:8000";
-      }
-    })();
+    const OCR_API_DIRECT = "http://192.168.4.68:8000";
     const OCR_API_PROXY = "/ocr-api";
-    let OCR_API_BASE = window.location.protocol === "file:" ? OCR_API_DIRECT_ORIGIN : OCR_API_PROXY;
-    let OCR_MODEL_NAME = "";
+    let OCR_API_BASE = window.location.protocol === "file:" ? OCR_API_DIRECT : OCR_API_PROXY;
+    const OCR_MODEL_NAME = "GLM-OCR";
 
     let currentCardIndex = 0;
     let currentTypeFilter = "all";
@@ -1708,8 +1701,8 @@
 
     async function detectOCREndpoint() {
       const candidates = window.location.protocol === "file:"
-        ? [OCR_API_DIRECT_ORIGIN]
-        : [OCR_API_PROXY, OCR_API_DIRECT_ORIGIN];
+        ? [OCR_API_DIRECT]
+        : [OCR_API_PROXY, OCR_API_DIRECT];
 
       for (const base of candidates) {
         try {
@@ -1722,19 +1715,7 @@
         }
       }
 
-      OCR_API_BASE = candidates[0] || OCR_API_DIRECT_ORIGIN;
-    }
-
-    async function loadOCRModel() {
-      try {
-        const response = await fetch(OCR_API_BASE + "/v1/models");
-        if (!response.ok) {
-          return;
-        }
-        const payload = await response.json();
-        OCR_MODEL_NAME = payload?.data?.[0]?.id || "";
-      } catch (error) {
-      }
+      OCR_API_BASE = candidates[0] || OCR_API_DIRECT;
     }
 
     function normalizeOCRDate(value) {
@@ -1756,6 +1737,7 @@
 
     async function requestOCRScan(imageData, mimeType) {
       const body = {
+        model: OCR_MODEL_NAME,
         messages: [
           {
             role: "user",
@@ -1778,11 +1760,7 @@
         temperature: 0
       };
 
-      if (OCR_MODEL_NAME) {
-        body.model = OCR_MODEL_NAME;
-      }
-
-      const response = await fetch(OCR_API_BASE + "/v1/completions", {
+      const response = await fetch(OCR_API_BASE + "/v1/chat/completions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -2266,7 +2244,7 @@
     statusFilter.addEventListener("change", renderRecordList);
     refreshButton.addEventListener("click", renderRecordList);
 
-    detectOCREndpoint().then(loadOCRModel);
+    detectOCREndpoint();
 
     exitButton.addEventListener("click", async function () {
       const record = records.find(function (item) { return item.id === selectedRecordId; });
