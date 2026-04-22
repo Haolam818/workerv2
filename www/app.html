@@ -1896,7 +1896,7 @@
      * ================================================================ */
 
     // ── OCR API 配置 ──
-    // 直接連接 OCR 服務地址；如遇 CORS 問題，Vite dev server 已配置 /ocr-api 代理
+    // GLM-OCR docs: http://192.168.4.68:8000/docs#/default/create_completion_v1_completions_post
     const OCR_API_DIRECT = "http://192.168.4.68:8000";
     const OCR_API_PROXY = "/ocr-api";
     let OCR_API_BASE = OCR_API_DIRECT;
@@ -2007,7 +2007,8 @@
           requestBody.model = OCR_MODEL_NAME;
         }
 
-        var response = await fetch(OCR_API_BASE + "/v1/chat/completions", {
+        // Use completion endpoint per GLM-OCR docs
+        var response = await fetch(OCR_API_BASE + "/v1/completions", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(requestBody)
