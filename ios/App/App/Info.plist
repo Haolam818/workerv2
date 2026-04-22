@@ -26,8 +26,25 @@
 	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>需要使用相機拍攝工人平安咭，以進行 OCR 識別及入場登記。</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>需要連線到內網 OCR 服務（192.168.4.68）以識別工人平安咭。</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>需要存取相簿以選擇工人平安咭照片，供 OCR 識別及入場登記使用。</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoadsInWebContent</key>
+		<true/>
+		<key>NSExceptionDomains</key>
+		<dict>
+			<key>192.168.4.68</key>
+			<dict>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
+				<true/>
+				<key>NSIncludesSubdomains</key>
+				<true/>
+			</dict>
+		</dict>
+	</dict>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>

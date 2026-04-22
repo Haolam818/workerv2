@@ -1896,7 +1896,8 @@
      * ================================================================ */
 
     // ── OCR API 配置 ──
-    // GLM-OCR service base (per your working example).
+    // Match the verified working call:
+    // POST http://192.168.4.68:8000/v1/chat/completions with model=GLM-OCR
     const OCR_API_DIRECT = "http://192.168.4.68:8000";
     const OCR_API_PROXY = "/ocr-api";
     let OCR_API_BASE = OCR_API_DIRECT;
@@ -1970,7 +1971,13 @@
       showLoading(true);
 
       try {
+        // iOS Safari blocks https -> http (mixed content). This message is clearer than "address error".
+        if (window.location.protocol === "https:" && OCR_API_BASE.startsWith("http://")) {
+          throw new Error("當前頁面為 HTTPS，瀏覽器會阻擋呼叫本地 HTTP OCR 服務。請在 App(WebView) 或本地 HTTP 環境測試，或為 OCR 服務配置 HTTPS。");
+        }
+
         var requestBody = {
+          model: OCR_MODEL_NAME,
           messages: [
             {
               role: "user",
@@ -1978,8 +1985,7 @@
                 {
                   type: "image_url",
                   image_url: {
-                    url: "data:" + mimeType + ";base64," + base64Data,
-                    detail: "high"
+                    url: "data:" + (mimeType || "image/jpeg") + ";base64," + base64Data
                   }
                 },
                 {
@@ -1989,11 +1995,9 @@
               ]
             }
           ],
-          max_tokens: 1024,
-          temperature: 0.0
+          max_tokens: 2048,
+          temperature: 0.1
         };
-
-        requestBody.model = OCR_MODEL_NAME;
 
         var response = await fetch(OCR_API_BASE + "/v1/chat/completions", {
           method: "POST",

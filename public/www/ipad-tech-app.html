@@ -1745,8 +1745,7 @@
               {
                 type: "image_url",
                 image_url: {
-                  url: "data:" + mimeType + ";base64," + imageData,
-                  detail: "high"
+                  url: "data:" + (mimeType || "image/jpeg") + ";base64," + imageData
                 }
               },
               {
@@ -1756,8 +1755,8 @@
             ]
           }
         ],
-        max_tokens: 1024,
-        temperature: 0
+        max_tokens: 2048,
+        temperature: 0.1
       };
 
       const response = await fetch(OCR_API_BASE + "/v1/chat/completions", {
