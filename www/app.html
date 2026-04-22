@@ -1896,19 +1896,26 @@
      * ================================================================ */
 
     // ── OCR API 配置 ──
-    // GLM-OCR docs: http://192.168.4.68:8000/docs#/default/create_completion_v1_completions_post
-    const OCR_API_DIRECT = "http://192.168.4.68:8000";
+    // GLM-OCR docs (UI URL; requests still go to its origin):
+    const OCR_API_DIRECT = "http://192.168.4.68:8000/docs#/default/create_completion_v1_completions_post";
+    const OCR_API_DIRECT_ORIGIN = (function () {
+      try {
+        return new URL(OCR_API_DIRECT).origin;
+      } catch (e) {
+        return String(OCR_API_DIRECT).split("/docs")[0] || "http://192.168.4.68:8000";
+      }
+    })();
     const OCR_API_PROXY = "/ocr-api";
-    let OCR_API_BASE = OCR_API_DIRECT;
+    let OCR_API_BASE = OCR_API_DIRECT_ORIGIN;
     let OCR_MODEL_NAME = ""; // 會在初始化時自動取得
 
     // ── 偵測是否需要使用代理（開發模式） ──
     async function detectOCREndpoint() {
       // 嘗試直接連接
       try {
-        var res = await fetch(OCR_API_DIRECT + "/health", { method: "GET", signal: AbortSignal.timeout(3000) });
+        var res = await fetch(OCR_API_DIRECT_ORIGIN + "/health", { method: "GET", signal: AbortSignal.timeout(3000) });
         if (res.ok) {
-          OCR_API_BASE = OCR_API_DIRECT;
+          OCR_API_BASE = OCR_API_DIRECT_ORIGIN;
           console.log("[OCR] 使用直連地址:", OCR_API_BASE);
           return;
         }
@@ -1924,8 +1931,8 @@
         }
       } catch (e) { /* 代理也失敗 */ }
 
-      console.warn("[OCR] 無法連接 OCR 服務，將使用直連地址:", OCR_API_DIRECT);
-      OCR_API_BASE = OCR_API_DIRECT;
+      console.warn("[OCR] 無法連接 OCR 服務，將使用直連地址:", OCR_API_DIRECT_ORIGIN);
+      OCR_API_BASE = OCR_API_DIRECT_ORIGIN;
     }
 
     // ── DOM 元素 ──

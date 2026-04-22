@@ -1556,9 +1556,16 @@
       CompanyChi: "",
       Organization: ""
     };
-    const OCR_API_DIRECT = "http://192.168.4.68:8000";
+    const OCR_API_DIRECT = "http://192.168.4.68:8000/docs#/default/create_completion_v1_completions_post";
+    const OCR_API_DIRECT_ORIGIN = (function () {
+      try {
+        return new URL(OCR_API_DIRECT).origin;
+      } catch (e) {
+        return String(OCR_API_DIRECT).split("/docs")[0] || "http://192.168.4.68:8000";
+      }
+    })();
     const OCR_API_PROXY = "/ocr-api";
-    let OCR_API_BASE = window.location.protocol === "file:" ? OCR_API_DIRECT : OCR_API_PROXY;
+    let OCR_API_BASE = window.location.protocol === "file:" ? OCR_API_DIRECT_ORIGIN : OCR_API_PROXY;
     let OCR_MODEL_NAME = "";
 
     let currentCardIndex = 0;
@@ -1701,8 +1708,8 @@
 
     async function detectOCREndpoint() {
       const candidates = window.location.protocol === "file:"
-        ? [OCR_API_DIRECT]
-        : [OCR_API_PROXY, OCR_API_DIRECT];
+        ? [OCR_API_DIRECT_ORIGIN]
+        : [OCR_API_PROXY, OCR_API_DIRECT_ORIGIN];
 
       for (const base of candidates) {
         try {
@@ -1715,7 +1722,7 @@
         }
       }
 
-      OCR_API_BASE = candidates[0] || OCR_API_DIRECT;
+      OCR_API_BASE = candidates[0] || OCR_API_DIRECT_ORIGIN;
     }
 
     async function loadOCRModel() {
