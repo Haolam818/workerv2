@@ -252,6 +252,21 @@
       flex-wrap: wrap;
     }
 
+    .upload-trigger {
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .upload-trigger input[type="file"] {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0.01;
+      cursor: pointer;
+    }
+
     .chip,
     .tab,
     .button,
@@ -1110,11 +1125,15 @@
                     <h2>對準平安咭進行掃描</h2>
                     <p>系統會自動識別持卡人姓名、平安咭號碼與過期日，並同步寫入登記表單。</p>
                     <div class="action-row">
-                      <button class="button button-primary" type="button" id="cameraButton"><i class="fa-solid fa-camera"></i> 拍照掃描</button>
-                      <button class="button button-secondary" type="button" id="uploadButton"><i class="fa-solid fa-image"></i> 從相簿選擇</button>
+                      <label class="button button-primary upload-trigger" id="cameraButton">
+                        <i class="fa-solid fa-camera"></i> 拍照掃描
+                        <input id="cameraInput" type="file" accept="image/*" capture="environment">
+                      </label>
+                      <label class="button button-secondary upload-trigger" id="uploadButton">
+                        <i class="fa-solid fa-image"></i> 從相簿選擇
+                        <input id="photoInput" type="file" accept="image/*">
+                      </label>
                     </div>
-                    <input id="cameraInput" type="file" accept="image/*" capture="environment" style="position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;">
-                    <input id="photoInput" type="file" accept="image/*" style="position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;">
                   </div>
                 </div>
                 <aside class="scan-result">
@@ -1868,14 +1887,6 @@
       riskText.textContent = "尚未掃描證件。掃描後將檢查是否已過期，並提示是否允許繼續登記。";
     }
 
-    function openFilePicker(input) {
-      if (typeof input.showPicker === "function") {
-        input.showPicker();
-        return;
-      }
-      input.click();
-    }
-
     function readFileAsBase64(file) {
       return new Promise(function (resolve, reject) {
         const reader = new FileReader();
@@ -2137,14 +2148,6 @@
       setView("recordsView");
       resetForm();
     }
-
-    cameraButton.addEventListener("click", function () {
-      openFilePicker(cameraInput);
-    });
-
-    uploadButton.addEventListener("click", function () {
-      openFilePicker(photoInput);
-    });
 
     cameraInput.addEventListener("change", async function () {
       const file = cameraInput.files && cameraInput.files[0];
