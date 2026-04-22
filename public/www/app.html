@@ -4,14 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>工人證登記 App Prototype</title>
-  <link rel="icon" type="image/png" href="https://s3plus.meituan.net/nocode-external/assets/nocode-logo.png">
-  <link rel="apple-touch-icon" href="https://s3plus.meituan.net/nocode-external/assets/nocode-logo.png">
-  <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#0f172a">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="工人證登記">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -1009,6 +1001,175 @@
         align-items: stretch;
       }
     }
+
+    /* iOS/WKWebView often blocks programmatic file picker clicks.
+       Use a real file input that is directly clicked by the user. */
+    .upload-trigger {
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+    }
+    .upload-trigger input[type="file"] {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0.01;
+      cursor: pointer;
+    }
+
+    /* ── Camera Modal ── */
+    .camera-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(6px);
+      align-items: center;
+      justify-content: center;
+    }
+    .camera-modal.active {
+      display: flex;
+    }
+    .camera-container {
+      width: 90%;
+      max-width: 720px;
+      border-radius: 28px;
+      overflow: hidden;
+      background: #111;
+      box-shadow: 0 32px 64px rgba(0, 0, 0, 0.5);
+    }
+    .camera-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px;
+      background: #1a1a2e;
+      color: #fff;
+    }
+    .camera-header h3 {
+      margin: 0;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .camera-close-btn {
+      width: 40px;
+      height: 40px;
+      border: 0;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+      font-size: 18px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .camera-close-btn:hover {
+      background: rgba(255, 255, 255, 0.24);
+    }
+    .camera-body {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 4/3;
+      background: #000;
+      overflow: hidden;
+    }
+    .camera-body video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .camera-guide {
+      position: absolute;
+      inset: 15%;
+      pointer-events: none;
+    }
+    .guide-corner {
+      position: absolute;
+      width: 28px;
+      height: 28px;
+      border-color: rgba(51, 112, 255, 0.9);
+      border-style: solid;
+      border-width: 0;
+    }
+    .guide-corner.tl { top: 0; left: 0; border-top-width: 3px; border-left-width: 3px; border-radius: 6px 0 0 0; }
+    .guide-corner.tr { top: 0; right: 0; border-top-width: 3px; border-right-width: 3px; border-radius: 0 6px 0 0; }
+    .guide-corner.bl { bottom: 0; left: 0; border-bottom-width: 3px; border-left-width: 3px; border-radius: 0 0 0 6px; }
+    .guide-corner.br { bottom: 0; right: 0; border-bottom-width: 3px; border-right-width: 3px; border-radius: 0 0 6px 0; }
+
+    .camera-footer {
+      padding: 20px 24px;
+      background: #1a1a2e;
+      text-align: center;
+      color: #ccc;
+    }
+    .camera-footer p {
+      margin: 0 0 16px;
+      font-size: 14px;
+    }
+    .camera-capture-btn {
+      width: 68px;
+      height: 68px;
+      border: 4px solid #fff;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary-color), #1f5bdf);
+      color: #fff;
+      font-size: 28px;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+      box-shadow: 0 8px 24px rgba(51, 112, 255, 0.4);
+    }
+    .camera-capture-btn:hover {
+      transform: scale(1.06);
+    }
+    .camera-capture-btn:active {
+      transform: scale(0.95);
+    }
+
+    /* ── OCR Loading Overlay ── */
+    .ocr-loading-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      background: rgba(0, 0, 0, 0.55);
+      backdrop-filter: blur(4px);
+      align-items: center;
+      justify-content: center;
+    }
+    .ocr-loading-overlay.active {
+      display: flex;
+    }
+    .ocr-loading-card {
+      padding: 40px 48px;
+      border-radius: 28px;
+      background: #fff;
+      text-align: center;
+      box-shadow: 0 24px 48px rgba(0, 0, 0, 0.18);
+    }
+    .ocr-loading-card h3 {
+      margin: 20px 0 8px;
+      font-size: 20px;
+    }
+    .ocr-loading-card p {
+      margin: 0;
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+    .ocr-spinner {
+      width: 52px;
+      height: 52px;
+      margin: 0 auto;
+      border: 4px solid #edf3ff;
+      border-top-color: var(--primary-color);
+      border-radius: 50%;
+      animation: ocr-spin 0.8s linear infinite;
+    }
+    @keyframes ocr-spin {
+      to { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body>
@@ -1098,22 +1259,34 @@
                   <h2>將證件放到鏡頭前或從相簿上載</h2>
                   <p>系統會自動帶入平安咭號碼與到期日，減少前台手動抄錄。</p>
                   <div class="button-row">
-                    <button class="button button-primary" type="button"><i class="fa-solid fa-camera"></i> 開始掃描</button>
-                    <button class="button button-secondary" type="button"><i class="fa-solid fa-arrow-up-from-bracket"></i> 上載照片</button>
+                    <label class="button button-primary upload-trigger" id="scanButton">
+                      <i class="fa-solid fa-camera"></i> 開始掃描
+                      <input type="file" id="cameraInput" accept="image/*" capture="environment">
+                    </label>
+                    <label class="button button-secondary upload-trigger" id="uploadButton">
+                      <i class="fa-solid fa-arrow-up-from-bracket"></i> 上載照片
+                      <input type="file" id="photoInput" accept="image/*">
+                    </label>
                   </div>
                 </div>
               </div>
 
-              <div class="meta-stack">
+              <div class="meta-stack" id="scanResultPanel" style="display:none;">
                 <div class="meta-card">
                   <span class="badge success"><i class="fa-solid fa-circle-check"></i> 已成功讀取</span>
                   <h4>掃描結果</h4>
                   <p>平安咭資料已帶入，可以直接核對工人身份與有效出入時間。</p>
                   <div class="meta-list">
-                    <div class="meta-row"><span>平安咭號碼</span><span>SK-4839-2201</span></div>
-                    <div class="meta-row"><span>到期日期</span><span>2027/10/12</span></div>
-                    <div class="meta-row"><span>掃描時間</span><span>09:42 AM</span></div>
+                    <div class="meta-row"><span>平安咭號碼</span><span id="ocrSafetyNo">--</span></div>
+                    <div class="meta-row"><span>到期日期</span><span id="ocrExpiry">--</span></div>
+                    <div class="meta-row"><span>掃描時間</span><span id="ocrScanTime">--</span></div>
                   </div>
+                </div>
+
+                <div class="meta-card" id="ocrRawCard" style="display:none;">
+                  <span class="badge info"><i class="fa-solid fa-file-lines"></i> OCR 原始結果</span>
+                  <h4>識別內容</h4>
+                  <p id="ocrRawText" style="white-space:pre-wrap; font-size:13px; line-height:1.6; color:var(--text-secondary);"></p>
                 </div>
 
                 <div class="meta-card">
@@ -1370,6 +1543,39 @@
       </div>
     </section>
   </main>
+
+  <!-- Camera Modal -->
+  <div class="camera-modal" id="cameraModal">
+    <div class="camera-container">
+      <div class="camera-header">
+        <h3><i class="fa-solid fa-camera"></i> 掃描工人平安咭</h3>
+        <button class="camera-close-btn" id="cameraCloseBtn" type="button"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="camera-body">
+        <video id="cameraVideo" autoplay playsinline></video>
+        <canvas id="cameraCanvas" style="display:none;"></canvas>
+        <div class="camera-guide">
+          <div class="guide-corner tl"></div>
+          <div class="guide-corner tr"></div>
+          <div class="guide-corner bl"></div>
+          <div class="guide-corner br"></div>
+        </div>
+      </div>
+      <div class="camera-footer">
+        <p>將平安咭對準框線內，點擊拍攝按鈕進行識別</p>
+        <button class="camera-capture-btn" id="cameraCaptureBtn" type="button"><i class="fa-solid fa-circle-dot"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- OCR Loading Overlay -->
+  <div class="ocr-loading-overlay" id="ocrLoadingOverlay">
+    <div class="ocr-loading-card">
+      <div class="ocr-spinner"></div>
+      <h3>正在識別證件...</h3>
+      <p>系統正透過 OCR 辨識平安咭資料，請稍候。</p>
+    </div>
+  </div>
 
   <script>
     const records = [
@@ -1684,12 +1890,222 @@
 
     updateTime();
     setInterval(updateTime, 60000);
-  </script>
-  <script>
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", function () {
-        navigator.serviceWorker.register("/sw.js").catch(function () {});
+
+    /* ================================================================
+     *  OCR 掃描 / 上載功能
+     * ================================================================ */
+
+    // ── OCR API 配置 ──
+    // 直接連接 OCR 服務地址；如遇 CORS 問題，Vite dev server 已配置 /ocr-api 代理
+    const OCR_API_DIRECT = "http://192.168.4.68:8000";
+    const OCR_API_PROXY = "/ocr-api";
+    let OCR_API_BASE = OCR_API_DIRECT;
+    let OCR_MODEL_NAME = ""; // 會在初始化時自動取得
+
+    // ── 偵測是否需要使用代理（開發模式） ──
+    async function detectOCREndpoint() {
+      // 嘗試直接連接
+      try {
+        var res = await fetch(OCR_API_DIRECT + "/health", { method: "GET", signal: AbortSignal.timeout(3000) });
+        if (res.ok) {
+          OCR_API_BASE = OCR_API_DIRECT;
+          console.log("[OCR] 使用直連地址:", OCR_API_BASE);
+          return;
+        }
+      } catch (e) { /* 直連失敗 */ }
+
+      // 嘗試代理
+      try {
+        var res2 = await fetch(OCR_API_PROXY + "/health", { method: "GET", signal: AbortSignal.timeout(3000) });
+        if (res2.ok) {
+          OCR_API_BASE = OCR_API_PROXY;
+          console.log("[OCR] 使用代理地址:", OCR_API_BASE);
+          return;
+        }
+      } catch (e) { /* 代理也失敗 */ }
+
+      console.warn("[OCR] 無法連接 OCR 服務，將使用直連地址:", OCR_API_DIRECT);
+      OCR_API_BASE = OCR_API_DIRECT;
+    }
+
+    // ── DOM 元素 ──
+    const cameraInput = document.getElementById("cameraInput");
+    const photoInput = document.getElementById("photoInput");
+    const ocrLoadingOverlay = document.getElementById("ocrLoadingOverlay");
+    const scanResultPanel = document.getElementById("scanResultPanel");
+    const ocrSafetyNo = document.getElementById("ocrSafetyNo");
+    const ocrExpiry = document.getElementById("ocrExpiry");
+    const ocrScanTime = document.getElementById("ocrScanTime");
+    const ocrRawCard = document.getElementById("ocrRawCard");
+    const ocrRawText = document.getElementById("ocrRawText");
+
+    // ── 初始化：偵測端點並取得模型名稱 ──
+    (async function initOCR() {
+      await detectOCREndpoint();
+      try {
+        const res = await fetch(OCR_API_BASE + "/v1/models");
+        const data = await res.json();
+        if (data && data.data && data.data.length > 0) {
+          OCR_MODEL_NAME = data.data[0].id;
+          console.log("[OCR] 模型已載入:", OCR_MODEL_NAME);
+        }
+      } catch (e) {
+        console.warn("[OCR] 無法取得模型列表，將嘗試不指定模型:", e.message);
+      }
+    })();
+
+    function handlePickedFile(file) {
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function () {
+        var base64Data = String(reader.result || "").split(",")[1];
+        var mimeType = file.type || "image/jpeg";
+        processOCR(base64Data, mimeType);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    cameraInput.addEventListener("change", function () {
+      handlePickedFile(cameraInput.files && cameraInput.files[0]);
+      cameraInput.value = "";
+    });
+
+    photoInput.addEventListener("change", function () {
+      handlePickedFile(photoInput.files && photoInput.files[0]);
+      photoInput.value = "";
+    });
+
+    // ── OCR 處理核心 ──
+    async function processOCR(base64Data, mimeType) {
+      showLoading(true);
+
+      try {
+        var requestBody = {
+          messages: [
+            {
+              role: "user",
+              content: [
+                {
+                  type: "image_url",
+                  image_url: {
+                    url: "data:" + mimeType + ";base64," + base64Data,
+                    detail: "high"
+                  }
+                },
+                {
+                  type: "text",
+                  text: "請仔細閱讀這張工人平安咭(建築工人註冊證)的圖片，提取以下資訊並以JSON格式返回：\n1. 平安咭號碼 (safety_card_no)\n2. 到期日期 (expiry_date，格式：YYYY/MM/DD)\n3. 姓名 (name)\n4. 工種 (trade)\n\n只返回JSON，不要其他文字。範例：\n{\"safety_card_no\":\"SK-1234-5678\",\"expiry_date\":\"2027/10/12\",\"name\":\"張三\",\"trade\":\"電工\"}"
+                }
+              ]
+            }
+          ],
+          max_tokens: 1024,
+          temperature: 0.0
+        };
+
+        if (OCR_MODEL_NAME) {
+          requestBody.model = OCR_MODEL_NAME;
+        }
+
+        var response = await fetch(OCR_API_BASE + "/v1/chat/completions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(requestBody)
+        });
+
+        if (!response.ok) {
+          var errData = await response.json().catch(function () { return {}; });
+          throw new Error("API 錯誤 " + response.status + ": " + (errData.error ? errData.error.message : response.statusText));
+        }
+
+        var data = await response.json();
+        var content = data.choices && data.choices[0] && data.choices[0].message
+          ? data.choices[0].message.content
+          : "";
+
+        applyOCRResult(content);
+      } catch (err) {
+        console.error("[OCR] 識別失敗:", err);
+        alert("OCR 識別失敗\n\n" + err.message + "\n\n請確認 OCR 服務 (" + OCR_API_BASE + ") 是否正常運行。");
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    // ── 解析 OCR 結果並填入介面 ──
+    function applyOCRResult(content) {
+      var safetyNo = "--";
+      var expiry = "--";
+      var name = "";
+      var trade = "";
+
+      // 嘗試解析 JSON
+      try {
+        // 提取 JSON (可能被 markdown code block 包裹)
+        var jsonStr = content;
+        var jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/);
+        if (jsonMatch) {
+          jsonStr = jsonMatch[1].trim();
+        } else {
+          // 嘗試直接找 { ... }
+          var braceMatch = content.match(/\{[\s\S]*\}/);
+          if (braceMatch) {
+            jsonStr = braceMatch[0];
+          }
+        }
+
+        var parsed = JSON.parse(jsonStr);
+        safetyNo = parsed.safety_card_no || parsed.safetyCardNo || parsed.card_no || parsed.cardNo || safetyNo;
+        expiry = parsed.expiry_date || parsed.expiryDate || parsed.expiry || expiry;
+        name = parsed.name || parsed.worker_name || "";
+        trade = parsed.trade || parsed.job || parsed.role || "";
+      } catch (e) {
+        console.warn("[OCR] JSON 解析失敗，嘗試文字匹配:", e.message);
+
+        // Fallback: 嘗試正則匹配
+        var noMatch = content.match(/(?:平安咭|安全咭|註冊證|card)[^:：]*[:：]\s*([A-Z]{1,3}[-\s]?\d{4}[-\s]?\d{2,6})/i);
+        if (noMatch) safetyNo = noMatch[1].trim();
+
+        var dateMatch = content.match(/(?:到期|有效期|expiry)[^:：]*[:：]\s*([\d]{4}[\/\-\.]\d{1,2}[\/\-\.]\d{1,2})/i);
+        if (dateMatch) expiry = dateMatch[1].replace(/-/g, "/");
+
+        var nameMatch = content.match(/(?:姓名|name)[^:：]*[:：]\s*([^\n,，]+)/i);
+        if (nameMatch) name = nameMatch[1].trim();
+      }
+
+      // 取得掃描時間
+      var now = new Date();
+      var scanTime = now.toLocaleTimeString("zh-HK", {
+        hour: "2-digit",
+        minute: "2-digit"
       });
+
+      // 填入掃描結果
+      ocrSafetyNo.textContent = safetyNo;
+      ocrExpiry.textContent = expiry;
+      ocrScanTime.textContent = scanTime;
+
+      // 顯示原始 OCR 結果
+      ocrRawText.textContent = content;
+      ocrRawCard.style.display = "block";
+
+      // 顯示結果面板
+      scanResultPanel.style.display = "";
+
+      // 嘗試自動填入表單欄位 (如果有的話)
+      if (name) {
+        var nameInput = document.querySelector('.form-grid .field.full input[type="text"]');
+        if (nameInput) nameInput.value = name;
+      }
+    }
+
+    // ── Loading 顯示控制 ──
+    function showLoading(show) {
+      if (show) {
+        ocrLoadingOverlay.classList.add("active");
+      } else {
+        ocrLoadingOverlay.classList.remove("active");
+      }
     }
   </script>
 </body>

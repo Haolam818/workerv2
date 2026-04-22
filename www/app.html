@@ -1002,6 +1002,22 @@
       }
     }
 
+    /* iOS/WKWebView often blocks programmatic file picker clicks.
+       Use a real file input that is directly clicked by the user. */
+    .upload-trigger {
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+    }
+    .upload-trigger input[type="file"] {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0.01;
+      cursor: pointer;
+    }
+
     /* ── Camera Modal ── */
     .camera-modal {
       display: none;
@@ -1243,9 +1259,14 @@
                   <h2>將證件放到鏡頭前或從相簿上載</h2>
                   <p>系統會自動帶入平安咭號碼與到期日，減少前台手動抄錄。</p>
                   <div class="button-row">
-                    <button class="button button-primary" id="scanButton" type="button"><i class="fa-solid fa-camera"></i> 開始掃描</button>
-                    <button class="button button-secondary" id="uploadButton" type="button"><i class="fa-solid fa-arrow-up-from-bracket"></i> 上載照片</button>
-                    <input type="file" id="fileInput" accept="image/*" style="display:none;">
+                    <label class="button button-primary upload-trigger" id="scanButton">
+                      <i class="fa-solid fa-camera"></i> 開始掃描
+                      <input type="file" id="cameraInput" accept="image/*" capture="environment">
+                    </label>
+                    <label class="button button-secondary upload-trigger" id="uploadButton">
+                      <i class="fa-solid fa-arrow-up-from-bracket"></i> 上載照片
+                      <input type="file" id="photoInput" accept="image/*">
+                    </label>
                   </div>
                 </div>
               </div>
@@ -1908,14 +1929,8 @@
     }
 
     // ── DOM 元素 ──
-    const scanButton = document.getElementById("scanButton");
-    const uploadButton = document.getElementById("uploadButton");
-    const fileInput = document.getElementById("fileInput");
-    const cameraModal = document.getElementById("cameraModal");
-    const cameraCloseBtn = document.getElementById("cameraCloseBtn");
-    const cameraVideo = document.getElementById("cameraVideo");
-    const cameraCanvas = document.getElementById("cameraCanvas");
-    const cameraCaptureBtn = document.getElementById("cameraCaptureBtn");
+    const cameraInput = document.getElementById("cameraInput");
+    const photoInput = document.getElementById("photoInput");
     const ocrLoadingOverlay = document.getElementById("ocrLoadingOverlay");
     const scanResultPanel = document.getElementById("scanResultPanel");
     const ocrSafetyNo = document.getElementById("ocrSafetyNo");
@@ -1923,8 +1938,6 @@
     const ocrScanTime = document.getElementById("ocrScanTime");
     const ocrRawCard = document.getElementById("ocrRawCard");
     const ocrRawText = document.getElementById("ocrRawText");
-
-    let cameraStream = null;
 
     // ── 初始化：偵測端點並取得模型名稱 ──
     (async function initOCR() {
@@ -1941,77 +1954,25 @@
       }
     })();
 
-    // ── 開始掃描：喚起攝像頭 ──
-    scanButton.addEventListener("click", async function () {
-      try {
-        cameraStream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode: { ideal: "environment" },
-            width: { ideal: 1920 },
-            height: { ideal: 1080 }
-          },
-          audio: false
-        });
-        cameraVideo.srcObject = cameraStream;
-        cameraModal.classList.add("active");
-      } catch (err) {
-        console.error("[Camera] 無法存取攝像頭:", err);
-        alert("無法存取攝像頭，請確認瀏覽器已授予攝像頭權限。\n\n錯誤信息：" + err.message);
-      }
-    });
-
-    // ── 拍攝按鈕：截取畫面並送 OCR ──
-    cameraCaptureBtn.addEventListener("click", function () {
-      const videoEl = cameraVideo;
-      const canvas = cameraCanvas;
-      canvas.width = videoEl.videoWidth;
-      canvas.height = videoEl.videoHeight;
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
-
-      const dataUrl = canvas.toDataURL("image/jpeg", 0.9);
-      const base64Data = dataUrl.split(",")[1];
-
-      closeCamera();
-      processOCR(base64Data, "image/jpeg");
-    });
-
-    // ── 關閉攝像頭 ──
-    function closeCamera() {
-      cameraModal.classList.remove("active");
-      if (cameraStream) {
-        cameraStream.getTracks().forEach(function (track) { track.stop(); });
-        cameraStream = null;
-      }
-      cameraVideo.srcObject = null;
-    }
-
-    cameraCloseBtn.addEventListener("click", closeCamera);
-
-    // 點擊 Modal 背景關閉
-    cameraModal.addEventListener("click", function (e) {
-      if (e.target === cameraModal) {
-        closeCamera();
-      }
-    });
-
-    // ── 上載照片：喚起相簿 ──
-    uploadButton.addEventListener("click", function () {
-      fileInput.click();
-    });
-
-    fileInput.addEventListener("change", function () {
-      var file = fileInput.files[0];
+    function handlePickedFile(file) {
       if (!file) return;
-
       var reader = new FileReader();
       reader.onload = function () {
-        var base64Data = reader.result.split(",")[1];
+        var base64Data = String(reader.result || "").split(",")[1];
         var mimeType = file.type || "image/jpeg";
         processOCR(base64Data, mimeType);
       };
       reader.readAsDataURL(file);
-      fileInput.value = ""; // 重置，讓同一張圖可再選
+    }
+
+    cameraInput.addEventListener("change", function () {
+      handlePickedFile(cameraInput.files && cameraInput.files[0]);
+      cameraInput.value = "";
+    });
+
+    photoInput.addEventListener("change", function () {
+      handlePickedFile(photoInput.files && photoInput.files[0]);
+      photoInput.value = "";
     });
 
     // ── OCR 處理核心 ──
