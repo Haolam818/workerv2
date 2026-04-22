@@ -1110,8 +1110,11 @@
                     <h2>對準平安咭進行掃描</h2>
                     <p>系統會自動識別持卡人姓名、平安咭號碼與過期日，並同步寫入登記表單。</p>
                     <div class="action-row">
-                      <button class="button button-primary" type="button" id="scanButton"><i class="fa-solid fa-bolt"></i> 開始掃描</button>
+                      <button class="button button-primary" type="button" id="cameraButton"><i class="fa-solid fa-camera"></i> 拍照掃描</button>
+                      <button class="button button-secondary" type="button" id="uploadButton"><i class="fa-solid fa-image"></i> 從相簿選擇</button>
                     </div>
+                    <input id="cameraInput" type="file" accept="image/*" capture="environment" style="position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;">
+                    <input id="photoInput" type="file" accept="image/*" style="position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;">
                   </div>
                 </div>
                 <aside class="scan-result">
@@ -1474,7 +1477,10 @@
     const staffPassword = document.getElementById("staffPassword");
     const staffSiteCode = document.getElementById("staffSiteCode");
     const staffIdentity = document.getElementById("staffIdentity");
-    const scanButton = document.getElementById("scanButton");
+    const cameraButton = document.getElementById("cameraButton");
+    const uploadButton = document.getElementById("uploadButton");
+    const cameraInput = document.getElementById("cameraInput");
+    const photoInput = document.getElementById("photoInput");
     const submitButton = document.getElementById("submitButton");
     const recordList = document.getElementById("recordList");
     const recentTimeline = document.getElementById("recentTimeline");
@@ -1531,7 +1537,10 @@
       CompanyChi: "",
       Organization: ""
     };
-    const OCR_ENDPOINT = "http://192.168.4.68:8000/docs-/v1/completions";
+    const OCR_API_DIRECT = "http://192.168.4.68:8000";
+    const OCR_API_PROXY = "/ocr-api";
+    let OCR_API_BASE = window.location.protocol === "file:" ? OCR_API_DIRECT : OCR_API_PROXY;
+    let OCR_MODEL_NAME = "";
 
     let currentCardIndex = 0;
     let currentTypeFilter = "all";
@@ -1671,16 +1680,88 @@
       return response.json();
     }
 
-    async function requestOCRScan(imageData) {
-      const response = await fetch(OCR_ENDPOINT, {
+    async function detectOCREndpoint() {
+      const candidates = window.location.protocol === "file:"
+        ? [OCR_API_DIRECT]
+        : [OCR_API_PROXY, OCR_API_DIRECT];
+
+      for (const base of candidates) {
+        try {
+          const response = await fetch(base + "/health", { method: "GET" });
+          if (response.ok) {
+            OCR_API_BASE = base;
+            return;
+          }
+        } catch (error) {
+        }
+      }
+
+      OCR_API_BASE = candidates[0] || OCR_API_DIRECT;
+    }
+
+    async function loadOCRModel() {
+      try {
+        const response = await fetch(OCR_API_BASE + "/v1/models");
+        if (!response.ok) {
+          return;
+        }
+        const payload = await response.json();
+        OCR_MODEL_NAME = payload?.data?.[0]?.id || "";
+      } catch (error) {
+      }
+    }
+
+    function normalizeOCRDate(value) {
+      if (!value) {
+        return "";
+      }
+
+      const match = String(value).trim().match(/(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})/);
+      if (!match) {
+        return String(value).trim();
+      }
+
+      return [
+        match[1],
+        match[2].padStart(2, "0"),
+        match[3].padStart(2, "0")
+      ].join("-");
+    }
+
+    async function requestOCRScan(imageData, mimeType) {
+      const body = {
+        messages: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "image_url",
+                image_url: {
+                  url: "data:" + mimeType + ";base64," + imageData,
+                  detail: "high"
+                }
+              },
+              {
+                type: "text",
+                text: "請仔細閱讀這張工人平安咭(建築工人註冊證)的圖片，提取以下資訊並以JSON格式返回：safety_card_no、expiry_date(YYYY-MM-DD)、name、trade。只返回JSON，不要其他文字。"
+              }
+            ]
+          }
+        ],
+        max_tokens: 1024,
+        temperature: 0
+      };
+
+      if (OCR_MODEL_NAME) {
+        body.model = OCR_MODEL_NAME;
+      }
+
+      const response = await fetch(OCR_API_BASE + "/v1/chat/completions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({
-          model: "safety-card-ocr",
-          input: imageData
-        })
+        body: JSON.stringify(body)
       });
 
       if (!response.ok) {
@@ -1701,6 +1782,15 @@
         try {
           return JSON.parse(raw);
         } catch (error) {
+          const codeBlockMatch = raw.match(/```(?:json)?\s*([\s\S]*?)```/i);
+          const jsonMatch = raw.match(/\{[\s\S]*\}/);
+          const candidate = codeBlockMatch?.[1]?.trim() || jsonMatch?.[0];
+          if (candidate) {
+            try {
+              return JSON.parse(candidate);
+            } catch (nestedError) {
+            }
+          }
           return {};
         }
       }
@@ -1712,13 +1802,14 @@
       const data = parseOCRContent(payload);
       return {
         name: data.name || data.holder_name || data.card_holder_name,
-        safetyNo: data.safetyNo || data.safety_no || data.card_number || data.number,
-        safetyExpiry: data.safetyExpiry || data.safety_expiry || data.expiry_date || data.expiryDate
+        safetyNo: data.safetyNo || data.safety_no || data.safety_card_no || data.card_number || data.number,
+        safetyExpiry: normalizeOCRDate(data.safetyExpiry || data.safety_expiry || data.expiry_date || data.expiryDate),
+        role: data.trade || data.role || data.job || ""
       };
     }
 
-    window.scanSafetyCardWithOCR = async function scanSafetyCardWithOCR(imageData) {
-      const payload = await requestOCRScan(imageData);
+    window.scanSafetyCardWithOCR = async function scanSafetyCardWithOCR(imageData, mimeType) {
+      const payload = await requestOCRScan(imageData, mimeType || "image/jpeg");
       const fieldsFromOCR = normalizeOCRFields(payload);
       applyCardData(fieldsFromOCR);
       return payload;
@@ -1775,6 +1866,51 @@
       scanStatus.className = "status-badge status-ok";
       scanStatus.innerHTML = '<i class="fa-solid fa-circle-check"></i> 待掃描';
       riskText.textContent = "尚未掃描證件。掃描後將檢查是否已過期，並提示是否允許繼續登記。";
+    }
+
+    function openFilePicker(input) {
+      if (typeof input.showPicker === "function") {
+        input.showPicker();
+        return;
+      }
+      input.click();
+    }
+
+    function readFileAsBase64(file) {
+      return new Promise(function (resolve, reject) {
+        const reader = new FileReader();
+        reader.onload = function () {
+          const result = typeof reader.result === "string" ? reader.result : "";
+          resolve(result.split(",")[1] || "");
+        };
+        reader.onerror = function () {
+          reject(reader.error || new Error("Failed to read image file"));
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function handleSelectedImage(file) {
+      if (!file) {
+        return;
+      }
+
+      scanStatus.className = "status-badge";
+      scanStatus.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 識別中';
+      scanCardStatus.textContent = "正在上傳並識別圖片";
+      riskText.textContent = "系統正在識別卡面資料，完成後會自動帶入表單。";
+
+      try {
+        const imageData = await readFileAsBase64(file);
+        await window.scanSafetyCardWithOCR(imageData, file.type || "image/jpeg");
+      } catch (error) {
+        console.error("OCR scan failed.", error);
+        scanStatus.className = "status-badge status-warning";
+        scanStatus.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> 識別失敗';
+        scanCardStatus.textContent = "請重試拍照或改用相簿圖片";
+        riskText.textContent = "目前未能完成 OCR 識別，請確認圖片清晰，並檢查 OCR 服務是否可連線。";
+        window.alert("OCR 識別失敗，請檢查 OCR 服務或重新選擇圖片。\n" + (error.message || ""));
+      }
     }
 
     function computeStats() {
@@ -2002,21 +2138,24 @@
       resetForm();
     }
 
-    scanButton.addEventListener("click", async function () {
-      const imageData = window.__OCR_IMAGE__;
+    cameraButton.addEventListener("click", function () {
+      openFilePicker(cameraInput);
+    });
 
-      if (imageData) {
-        try {
-          await window.scanSafetyCardWithOCR(imageData);
-          return;
-        } catch (error) {
-          console.error("OCR scan failed, fallback to demo data.", error);
-        }
-      }
+    uploadButton.addEventListener("click", function () {
+      openFilePicker(photoInput);
+    });
 
-      const card = sampleCards[currentCardIndex % sampleCards.length];
-      currentCardIndex += 1;
-      applyCardData(card);
+    cameraInput.addEventListener("change", async function () {
+      const file = cameraInput.files && cameraInput.files[0];
+      await handleSelectedImage(file);
+      cameraInput.value = "";
+    });
+
+    photoInput.addEventListener("change", async function () {
+      const file = photoInput.files && photoInput.files[0];
+      await handleSelectedImage(file);
+      photoInput.value = "";
     });
 
     loginButton.addEventListener("click", async function () {
@@ -2116,6 +2255,8 @@
     searchInput.addEventListener("input", renderRecordList);
     statusFilter.addEventListener("change", renderRecordList);
     refreshButton.addEventListener("click", renderRecordList);
+
+    detectOCREndpoint().then(loadOCRModel);
 
     exitButton.addEventListener("click", async function () {
       const record = records.find(function (item) { return item.id === selectedRecordId; });
