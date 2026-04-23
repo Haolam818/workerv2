@@ -252,6 +252,21 @@
       flex-wrap: wrap;
     }
 
+    .upload-trigger {
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .upload-trigger input[type="file"] {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0.01;
+      cursor: pointer;
+    }
+
     .chip,
     .tab,
     .button,
@@ -1110,11 +1125,15 @@
                     <h2>對準平安咭進行掃描</h2>
                     <p>系統會自動識別持卡人姓名、平安咭號碼與過期日，並同步寫入登記表單。</p>
                     <div class="action-row">
-                      <button class="button button-primary" type="button" id="cameraButton"><i class="fa-solid fa-camera"></i> 拍照掃描</button>
-                      <button class="button button-secondary" type="button" id="uploadButton"><i class="fa-solid fa-image"></i> 從相簿選擇</button>
+                      <label class="button button-primary upload-trigger" id="cameraButton">
+                        <i class="fa-solid fa-camera"></i> 拍照掃描
+                        <input id="cameraInput" type="file" accept="image/*" capture="environment">
+                      </label>
+                      <label class="button button-secondary upload-trigger" id="uploadButton">
+                        <i class="fa-solid fa-image"></i> 從相簿選擇
+                        <input id="photoInput" type="file" accept="image/*">
+                      </label>
                     </div>
-                    <input id="cameraInput" type="file" accept="image/*" capture="environment" style="position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;">
-                    <input id="photoInput" type="file" accept="image/*" style="position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;">
                   </div>
                 </div>
                 <aside class="scan-result">
@@ -1537,10 +1556,9 @@
       CompanyChi: "",
       Organization: ""
     };
-    const OCR_API_DIRECT = "http://192.168.4.68:8000";
-    const OCR_API_PROXY = "/ocr-api";
-    let OCR_API_BASE = window.location.protocol === "file:" ? OCR_API_DIRECT : OCR_API_PROXY;
-    let OCR_MODEL_NAME = "";
+    const ARK_API_KEY = "ark-96fd4580-272f-4406-b112-0aae21641272-12345"; // placeholder; replace later
+    const ARK_ENDPOINT = "https://ark.cn-beijing.volces.com/api/v3/responses";
+    const ARK_MODEL = "doubao-seed-1-6-flash-250828";
 
     let currentCardIndex = 0;
     let currentTypeFilter = "all";
@@ -1680,34 +1698,34 @@
       return response.json();
     }
 
-    async function detectOCREndpoint() {
-      const candidates = window.location.protocol === "file:"
-        ? [OCR_API_DIRECT]
-        : [OCR_API_PROXY, OCR_API_DIRECT];
-
-      for (const base of candidates) {
-        try {
-          const response = await fetch(base + "/health", { method: "GET" });
-          if (response.ok) {
-            OCR_API_BASE = base;
-            return;
+    function extractTextFromArkResponse(payload) {
+      if (!payload) return "";
+      if (typeof payload.output_text === "string") return payload.output_text;
+      const out = payload.output;
+      if (Array.isArray(out)) {
+        let acc = "";
+        for (const item of out) {
+          const content = item && item.content;
+          if (!Array.isArray(content)) continue;
+          for (const part of content) {
+            if (!part) continue;
+            if (typeof part.text === "string") acc += part.text;
+            if (typeof part.output_text === "string") acc += part.output_text;
           }
-        } catch (error) {
         }
+        return acc;
       }
-
-      OCR_API_BASE = candidates[0] || OCR_API_DIRECT;
+      return "";
     }
 
-    async function loadOCRModel() {
+    function extractJsonFromText(text) {
+      var raw = String(text || "");
+      var jsonMatch = raw.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) return null;
       try {
-        const response = await fetch(OCR_API_BASE + "/v1/models");
-        if (!response.ok) {
-          return;
-        }
-        const payload = await response.json();
-        OCR_MODEL_NAME = payload?.data?.[0]?.id || "";
-      } catch (error) {
+        return JSON.parse(jsonMatch[0]);
+      } catch (e) {
+        return null;
       }
     }
 
@@ -1718,7 +1736,16 @@
 
       const match = String(value).trim().match(/(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})/);
       if (!match) {
-        return String(value).trim();
+        const matchDMY = String(value).trim().match(/(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})/);
+        if (!matchDMY) {
+          return String(value).trim();
+        }
+        // Convert DD/MM/YYYY -> YYYY-MM-DD (for <input type="date">)
+        return [
+          matchDMY[3],
+          matchDMY[2].padStart(2, "0"),
+          matchDMY[1].padStart(2, "0")
+        ].join("-");
       }
 
       return [
@@ -1729,52 +1756,51 @@
     }
 
     async function requestOCRScan(imageData, mimeType) {
-      const body = {
-        messages: [
-          {
-            role: "user",
-            content: [
-              {
-                type: "image_url",
-                image_url: {
-                  url: "data:" + mimeType + ";base64," + imageData,
-                  detail: "high"
-                }
-              },
-              {
-                type: "text",
-                text: "請仔細閱讀這張工人平安咭(建築工人註冊證)的圖片，提取以下資訊並以JSON格式返回：safety_card_no、expiry_date(YYYY-MM-DD)、name、trade。只返回JSON，不要其他文字。"
-              }
-            ]
-          }
-        ],
-        max_tokens: 1024,
-        temperature: 0
-      };
+      const dataUrl = `data:${mimeType || "image/jpeg"};base64,${imageData}`;
+      const prompt =
+        "你是一個建造業安全訓練證明書OCR結構化提取助手。\n" +
+        "任務：從圖片中提取建造業安全訓練證明書信息，並嚴格輸出為JSON。\n" +
+        "注意：圖片可能橫向放置（旋轉90°或270°），請先在腦海中旋轉至正向後再識別。\n" +
+        "有效期限第一行為開始日期，第二行才是ExpirationDate，請輸出第二行日期。\n" +
+        "輸出規則：只允許輸出以下JSON格式，不允許增加/刪除/修改字段名；所有字段必須存在；無法識別用空字符串\"\"；不得輸出任何非JSON內容。\n" +
+        "JSON：{\n\"UserNameChi\":\"\",\n\"IDNo\":\"\",\n\"IDNoExpirationDate\":\"\"\n}";
 
-      if (OCR_MODEL_NAME) {
-        body.model = OCR_MODEL_NAME;
-      }
-
-      const response = await fetch(OCR_API_BASE + "/v1/chat/completions", {
+      const response = await fetch(ARK_ENDPOINT, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + ARK_API_KEY
         },
-        body: JSON.stringify(body)
+        body: JSON.stringify({
+          model: ARK_MODEL,
+          input: [
+            {
+              role: "user",
+              content: [
+                { type: "input_image", image_url: dataUrl },
+                { type: "input_text", text: prompt }
+              ]
+            }
+          ]
+        })
       });
 
+      const payload = await response.json().catch(function () { return {}; });
       if (!response.ok) {
-        throw new Error("OCR request failed: " + response.status);
+        throw new Error(payload?.error?.message || ("OCR request failed: " + response.status));
       }
 
-      return response.json();
+      const rawText = extractTextFromArkResponse(payload);
+      const parsed = extractJsonFromText(rawText);
+      return {
+        raw_text: rawText,
+        fields: parsed || {}
+      };
     }
 
     function parseOCRContent(payload) {
-      const raw = payload?.choices?.[0]?.message?.content
-        || payload?.choices?.[0]?.text
-        || payload?.output_text
+      const raw = payload?.fields
+        || payload?.raw_text
         || payload?.data
         || payload;
 
@@ -1799,11 +1825,13 @@
     }
 
     function normalizeOCRFields(payload) {
-      const data = parseOCRContent(payload);
+      const data = parseOCRContent(payload) || {};
+      const expiry = data.IDNoExpirationDate || data.expiry_date || data.safetyExpiry || data.safety_expiry || data.expiryDate || data.expiry;
       return {
-        name: data.name || data.holder_name || data.card_holder_name,
-        safetyNo: data.safetyNo || data.safety_no || data.safety_card_no || data.card_number || data.number,
-        safetyExpiry: normalizeOCRDate(data.safetyExpiry || data.safety_expiry || data.expiry_date || data.expiryDate),
+        name: data.UserNameChi || data.name || data.holder_name || data.card_holder_name,
+        safetyNo: data.IDNo || data.safety_card_no || data.safetyNo || data.safety_no || data.card_number || data.number,
+        safetyExpiry: normalizeOCRDate(expiry),
+        safetyExpiryDisplay: typeof expiry === "string" ? expiry.trim() : "",
         role: data.trade || data.role || data.job || ""
       };
     }
@@ -1832,7 +1860,7 @@
 
       scanName.textContent = fields.workerName.value || "未識別";
       scanSafetyNo.textContent = fields.safetyNo.value || "未識別";
-      scanExpiry.textContent = fields.safetyExpiry.value || "未識別";
+      scanExpiry.textContent = card.safetyExpiryDisplay || fields.safetyExpiry.value || "未識別";
 
       const expired = fields.safetyExpiry.value
         ? new Date(fields.safetyExpiry.value) < new Date(new Date().toDateString())
@@ -1866,14 +1894,6 @@
       scanStatus.className = "status-badge status-ok";
       scanStatus.innerHTML = '<i class="fa-solid fa-circle-check"></i> 待掃描';
       riskText.textContent = "尚未掃描證件。掃描後將檢查是否已過期，並提示是否允許繼續登記。";
-    }
-
-    function openFilePicker(input) {
-      if (typeof input.showPicker === "function") {
-        input.showPicker();
-        return;
-      }
-      input.click();
     }
 
     function readFileAsBase64(file) {
@@ -2138,14 +2158,6 @@
       resetForm();
     }
 
-    cameraButton.addEventListener("click", function () {
-      openFilePicker(cameraInput);
-    });
-
-    uploadButton.addEventListener("click", function () {
-      openFilePicker(photoInput);
-    });
-
     cameraInput.addEventListener("change", async function () {
       const file = cameraInput.files && cameraInput.files[0];
       await handleSelectedImage(file);
@@ -2256,7 +2268,7 @@
     statusFilter.addEventListener("change", renderRecordList);
     refreshButton.addEventListener("click", renderRecordList);
 
-    detectOCREndpoint().then(loadOCRModel);
+    // Direct ARK call uses embedded placeholder key; replace it before real use.
 
     exitButton.addEventListener("click", async function () {
       const record = records.find(function (item) { return item.id === selectedRecordId; });
