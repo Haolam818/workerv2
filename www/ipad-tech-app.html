@@ -1711,10 +1711,12 @@
             if (!part) continue;
             if (typeof part.text === "string") acc += part.text;
             if (typeof part.output_text === "string") acc += part.output_text;
+            if (typeof part.content === "string") acc += part.content;
           }
         }
         return acc;
       }
+      if (typeof payload.message === "string") return payload.message;
       return "";
     }
 
@@ -1788,12 +1790,21 @@
         })
       });
 
-      const payload = await response.json().catch(function () { return {}; });
+      const responseText = await response.text();
+      let payload = {};
+      try {
+        payload = responseText ? JSON.parse(responseText) : {};
+      } catch (e) {
+        payload = {};
+      }
       if (!response.ok) {
-        throw new Error(payload?.error?.message || ("OCR request failed: " + response.status));
+        throw new Error(payload?.error?.message || ("OCR request failed: " + response.status + " " + responseText.slice(0, 300)));
       }
 
       const rawText = extractTextFromArkResponse(payload);
+      if (!rawText) {
+        throw new Error("ARK 服務未返回可解析文本，原始返回：" + responseText.slice(0, 300));
+      }
       const parsed = extractJsonFromText(rawText);
       return {
         raw_text: rawText,

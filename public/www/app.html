@@ -1918,10 +1918,12 @@
             if (!part) continue;
             if (typeof part.text === "string") acc += part.text;
             if (typeof part.output_text === "string") acc += part.output_text;
+            if (typeof part.content === "string") acc += part.content;
           }
         }
         return acc;
       }
+      if (typeof payload.message === "string") return payload.message;
       // Chat Completions 相容
       if (payload.choices && payload.choices.length > 0 && payload.choices[0].message) {
         return payload.choices[0].message.content || "";
@@ -2020,21 +2022,22 @@
           })
         });
 
+        var responseText = await response.text();
+
         if (!response.ok) {
-          var errBody = "";
-          try { errBody = await response.text(); } catch (_) {}
+          var errBody = responseText || response.statusText;
           console.error("[OCR] ARK API 返回錯誤:", response.status, errBody);
-          throw new Error("ARK API 錯誤 " + response.status + ": " + (errBody || response.statusText));
+          throw new Error("ARK API 錯誤 " + response.status + ": " + errBody.slice(0, 300));
         }
 
-        var data = await response.json();
+        var data = JSON.parse(responseText);
         console.log("[OCR] ARK 完整回應:", JSON.stringify(data, null, 2));
 
         var rawText = extractTextFromArkResponse(data);
         console.log("[OCR] 提取文本:", rawText);
 
         if (!rawText) {
-          throw new Error("ARK 服務未返回任何識別結果");
+          throw new Error("ARK 服務未返回可解析文本，原始返回：" + responseText.slice(0, 300));
         }
 
         applyOCRResult(rawText);
