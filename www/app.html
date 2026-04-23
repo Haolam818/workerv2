@@ -1984,11 +1984,10 @@
       "  \"IDNoExpirationDate\": \"\"\n" +
       "}\n" +
       "\n" +
-      "補充說明：\n" +
-      "- UserNameChi：持證人中文姓名（如 陳大文）\n" +
-      "- IDNo：編號 / Reference No.（如 HRJD0800934R）\n" +
-      "- IDNoExpirationDate：有效期限的第二行日期（即到期日），格式如 17/05/2026\n" +
-      "  請注意，有效期限第一行為開始日期，第二行才是 ExpirationDate\n" +
+      "字段定位規則（按圖片上的英文標籤定位）：\n" +
+      "- UserNameChi：請填入 Holder's Name 下方 English 一行的英文姓名，例如 Ling Sze Hin；不要填中文姓名\n" +
+      "- IDNo：請填入 Reference No. 後方的編號，例如 HRJD0600965R\n" +
+      "- IDNoExpirationDate：請填入 Validity Period 的第二個日期，也就是 to 後方的日期，例如 17/05/2026；不要填 from 後方的開始日期\n" +
       "\n" +
       "請開始識別。";
 
@@ -2072,12 +2071,9 @@
         var parsed = JSON.parse(jsonStr);
         console.log("[OCR] JSON 解析成功:", parsed);
 
-        // 按用戶定義的 schema 映射
-        // IDNo → 平安咭號碼
+        // UserNameChi carries the English holder name for this certificate flow.
         safetyNo = parsed.IDNo || safetyNo;
-        // IDNoExpirationDate → 平安咭過期日
         expiry = parsed.IDNoExpirationDate || expiry;
-        // UserNameChi → 持證人姓名
         name = parsed.UserNameChi || name;
       } catch (e) {
         console.warn("[OCR] JSON 解析失敗，嘗試正則匹配:", e.message);
@@ -2130,185 +2126,7 @@
         ocrLoadingOverlay.classList.remove("active");
       }
     }
-        }
-        return acc;
-      }
-      return "";
-    }
 
-    function extractJsonFromText(text) {
-      var raw = String(text || "");
-      var jsonMatch = raw.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) return null;
-      try {
-        return JSON.parse(jsonMatch[0]);
-      } catch (e) {
-        return null;
-      }
-    }
-
-    // ── DOM 元素 ──
-    const cameraInput = document.getElementById("cameraInput");
-    const photoInput = document.getElementById("photoInput");
-    const ocrLoadingOverlay = document.getElementById("ocrLoadingOverlay");
-    const scanResultPanel = document.getElementById("scanResultPanel");
-    const ocrSafetyNo = document.getElementById("ocrSafetyNo");
-    const ocrExpiry = document.getElementById("ocrExpiry");
-    const ocrScanTime = document.getElementById("ocrScanTime");
-    const ocrRawCard = document.getElementById("ocrRawCard");
-    const ocrRawText = document.getElementById("ocrRawText");
-
-    const OCR_ENDPOINT = resolveOCREndpoint();
-
-    function handlePickedFile(file) {
-      if (!file) return;
-      var reader = new FileReader();
-      reader.onload = function () {
-        var base64Data = String(reader.result || "").split(",")[1];
-        var mimeType = file.type || "image/jpeg";
-        processOCR(base64Data, mimeType);
-      };
-      reader.readAsDataURL(file);
-    }
-
-    cameraInput.addEventListener("change", function () {
-      handlePickedFile(cameraInput.files && cameraInput.files[0]);
-      cameraInput.value = "";
-    });
-
-    photoInput.addEventListener("change", function () {
-      handlePickedFile(photoInput.files && photoInput.files[0]);
-      photoInput.value = "";
-    });
-
-    // ── OCR 處理核心 ──
-    async function processOCR(base64Data, mimeType) {
-      showLoading(true);
-
-      try {
-        var dataUrl = "data:" + (mimeType || "image/jpeg") + ";base64," + base64Data;
-        var prompt =
-          "你是一個建造業安全訓練證明書OCR結構化提取助手。\\n" +
-          "任務：從圖片中提取建造業安全訓練證明書信息，並嚴格輸出為JSON。\\n" +
-          "注意：圖片可能橫向放置（旋轉90°或270°），請先在腦海中旋轉至正向後再識別。\\n" +
-          "有效期限第一行為開始日期，第二行才是ExpirationDate，請輸出第二行日期。\\n" +
-          "輸出規則：只允許輸出以下JSON格式，不允許增加/刪除/修改字段名；所有字段必須存在；無法識別用空字符串\"\"；不得輸出任何非JSON內容。\\n" +
-          "JSON：{\\n\"UserNameChi\":\"\",\\n\"IDNo\":\"\",\\n\"IDNoExpirationDate\":\"\"\\n}";
-
-        var response = await fetch(ARK_ENDPOINT, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer " + ARK_API_KEY
-          },
-          body: JSON.stringify({
-            model: ARK_MODEL,
-            input: [
-              {
-                role: "user",
-                content: [
-                  { type: "input_image", image_url: dataUrl },
-                  { type: "input_text", text: prompt }
-                ]
-              }
-            ]
-          })
-        });
-
-        if (!response.ok) {
-          var errData = await response.json().catch(function () { return {}; });
-          throw new Error("ARK API 錯誤 " + response.status + ": " + (errData.error ? errData.error.message : response.statusText));
-        }
-
-        var data = await response.json();
-        var rawText = extractTextFromArkResponse(data);
-        var parsed = extractJsonFromText(rawText);
-        var content = parsed ? JSON.stringify(parsed) : rawText;
-        applyOCRResult(content);
-      } catch (err) {
-        console.error("[OCR] 識別失敗:", err);
-        alert("OCR 識別失敗\n\n" + err.message);
-      } finally {
-        showLoading(false);
-      }
-    }
-
-    // ── 解析 OCR 結果並填入介面 ──
-    function applyOCRResult(content) {
-      var safetyNo = "--";
-      var expiry = "--";
-      var name = "";
-      var trade = "";
-
-      // 嘗試解析 JSON
-      try {
-        // 提取 JSON (可能被 markdown code block 包裹)
-        var jsonStr = content;
-        var jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/);
-        if (jsonMatch) {
-          jsonStr = jsonMatch[1].trim();
-        } else {
-          // 嘗試直接找 { ... }
-          var braceMatch = content.match(/\{[\s\S]*\}/);
-          if (braceMatch) {
-            jsonStr = braceMatch[0];
-          }
-        }
-
-        var parsed = JSON.parse(jsonStr);
-        // New schema (建造業安全訓練證明書)
-        safetyNo = parsed.IDNo || parsed.id_no || parsed.ID || safetyNo;
-        expiry = parsed.IDNoExpirationDate || parsed.expiry_date || parsed.expiryDate || parsed.expiry || expiry;
-        name = parsed.UserNameChi || parsed.name || parsed.worker_name || "";
-        trade = parsed.trade || parsed.job || parsed.role || "";
-      } catch (e) {
-        console.warn("[OCR] JSON 解析失敗，嘗試文字匹配:", e.message);
-
-        // Fallback: 嘗試正則匹配
-        var noMatch = content.match(/(?:平安咭|安全咭|註冊證|card)[^:：]*[:：]\s*([A-Z]{1,3}[-\s]?\d{4}[-\s]?\d{2,6})/i);
-        if (noMatch) safetyNo = noMatch[1].trim();
-
-        var dateMatch = content.match(/(?:到期|有效期|expiry)[^:：]*[:：]\s*([\d]{4}[\/\-\.]\d{1,2}[\/\-\.]\d{1,2})/i);
-        if (dateMatch) expiry = dateMatch[1].replace(/-/g, "/");
-
-        var nameMatch = content.match(/(?:姓名|name)[^:：]*[:：]\s*([^\n,，]+)/i);
-        if (nameMatch) name = nameMatch[1].trim();
-      }
-
-      // 取得掃描時間
-      var now = new Date();
-      var scanTime = now.toLocaleTimeString("zh-HK", {
-        hour: "2-digit",
-        minute: "2-digit"
-      });
-
-      // 填入掃描結果
-      ocrSafetyNo.textContent = safetyNo;
-      ocrExpiry.textContent = expiry;
-      ocrScanTime.textContent = scanTime;
-
-      // 顯示原始 OCR 結果
-      ocrRawText.textContent = content;
-      ocrRawCard.style.display = "block";
-
-      // 顯示結果面板
-      scanResultPanel.style.display = "";
-
-      // 嘗試自動填入表單欄位 (如果有的話)
-      if (name) {
-        var nameInput = document.querySelector('.form-grid .field.full input[type="text"]');
-        if (nameInput) nameInput.value = name;
-      }
-    }
-
-    // ── Loading 顯示控制 ──
-    function showLoading(show) {
-      if (show) {
-        ocrLoadingOverlay.classList.add("active");
-      } else {
-        ocrLoadingOverlay.classList.remove("active");
-      }
-    }
   </script>
 </body>
 </html>

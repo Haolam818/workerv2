@@ -1761,8 +1761,11 @@
         "你是一個建造業安全訓練證明書OCR結構化提取助手。\n" +
         "任務：從圖片中提取建造業安全訓練證明書信息，並嚴格輸出為JSON。\n" +
         "注意：圖片可能橫向放置（旋轉90°或270°），請先在腦海中旋轉至正向後再識別。\n" +
-        "有效期限第一行為開始日期，第二行才是ExpirationDate，請輸出第二行日期。\n" +
         "輸出規則：只允許輸出以下JSON格式，不允許增加/刪除/修改字段名；所有字段必須存在；無法識別用空字符串\"\"；不得輸出任何非JSON內容。\n" +
+        "字段定位規則（按圖片上的英文標籤定位）：\n" +
+        "UserNameChi：請填入 Holder's Name 下方 English 一行的英文姓名，例如 Ling Sze Hin；不要填中文姓名。\n" +
+        "IDNo：請填入 Reference No. 後方的編號，例如 HRJD0600965R。\n" +
+        "IDNoExpirationDate：請填入 Validity Period 的第二個日期，也就是 to 後方的日期，例如 17/05/2026；不要填 from 後方的開始日期。\n" +
         "JSON：{\n\"UserNameChi\":\"\",\n\"IDNo\":\"\",\n\"IDNoExpirationDate\":\"\"\n}";
 
       const response = await fetch(ARK_ENDPOINT, {
@@ -1828,6 +1831,7 @@
       const data = parseOCRContent(payload) || {};
       const expiry = data.IDNoExpirationDate || data.expiry_date || data.safetyExpiry || data.safety_expiry || data.expiryDate || data.expiry;
       return {
+        // UserNameChi intentionally stores the English Holder's Name for this certificate flow.
         name: data.UserNameChi || data.name || data.holder_name || data.card_holder_name,
         safetyNo: data.IDNo || data.safety_card_no || data.safetyNo || data.safety_no || data.card_number || data.number,
         safetyExpiry: normalizeOCRDate(expiry),
