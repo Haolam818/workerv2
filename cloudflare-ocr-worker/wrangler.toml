@@ -3,6 +3,9 @@ main = "src/index.js"
 compatibility_date = "2026-04-23"
 
 [vars]
-# Set these in Cloudflare dashboard or via `wrangler secret put ...` for production.
-# GOOGLE_VISION_API_KEY = ""
+# Doubao/ARK Responses API endpoint and model.
+ARK_BASE_URL = "https://ark.cn-beijing.volces.com/api/v3/responses"
+ARK_MODEL = "doubao-seed-1-6-flash-250828"
 
+# Set secrets via:
+#   wrangler secret put ARK_API_KEY
