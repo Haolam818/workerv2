@@ -1557,7 +1557,7 @@
       Organization: ""
     };
     const ARK_API_KEY = "ark-96fd4580-272f-4406-b112-0aae21641272-12345"; // placeholder; replace later
-    const ARK_ENDPOINT = window.__ARK_ENDPOINT__ || "https://ark.cn-beijing.volces.com/api/v3/responses";
+    const ARK_ENDPOINT = window.__ARK_ENDPOINT__ || "/api/ocr";
     const ARK_MODEL = "doubao-seed-1-6-flash-250828";
 
     let currentCardIndex = 0;
@@ -1775,8 +1775,7 @@
         response = await fetch(ARK_ENDPOINT, {
           method: "POST",
           headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer " + ARK_API_KEY
+            "Content-Type": "application/json"
           },
           body: JSON.stringify({
             model: ARK_MODEL,
@@ -1792,7 +1791,7 @@
           })
         });
       } catch (networkErr) {
-        throw new Error("網絡請求失敗（可能是 CORS 或網絡不可達）。目前請求地址：" + ARK_ENDPOINT + "。原始錯誤：" + networkErr.message);
+        throw new Error("網絡請求失敗。請確認同源代理 /api/ocr 已部署。原始錯誤：" + networkErr.message);
       }
 
       const responseText = await response.text();
