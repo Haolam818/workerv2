@@ -1896,23 +1896,38 @@
      *  OCR 掃描 / 上載功能
      * ================================================================ */
 
-    // ── OCR API 配置（本地 GLM-OCR vLLM 服務）──
-    var OCR_API_BASE = "http://192.168.4.68:8000";
-    var OCR_MODEL_NAME = ""; // 自動從 /v1/models 取得
+    // ── OCR API 配置（Doubao ARK Responses API）──
+    var ARK_API_KEY = "ark-96fd4580-272f-4406-b112-0aae21641272-12345";
+    var ARK_ENDPOINT = "https://ark.cn-beijing.volces.com/api/v3/responses";
+    var ARK_MODEL = "doubao-seed-1-6-flash-250828";
 
-    // ── 初始化：取得模型名稱 ──
-    (async function initOCR() {
-      try {
-        var res = await fetch(OCR_API_BASE + "/v1/models");
-        var data = await res.json();
-        if (data && data.data && data.data.length > 0) {
-          OCR_MODEL_NAME = data.data[0].id;
-          console.log("[OCR] 模型已載入:", OCR_MODEL_NAME);
+    // ── ARK 回應文本提取 ──
+    function extractTextFromArkResponse(payload) {
+      if (!payload) return "";
+      // Responses API: output_text 是頂層快捷欄位
+      if (typeof payload.output_text === "string") return payload.output_text;
+      // 深層提取
+      var out = payload.output;
+      if (Array.isArray(out)) {
+        var acc = "";
+        for (var i = 0; i < out.length; i++) {
+          var content = out[i] && out[i].content;
+          if (!Array.isArray(content)) continue;
+          for (var j = 0; j < content.length; j++) {
+            var part = content[j];
+            if (!part) continue;
+            if (typeof part.text === "string") acc += part.text;
+            if (typeof part.output_text === "string") acc += part.output_text;
+          }
         }
-      } catch (e) {
-        console.warn("[OCR] 無法取得模型列表:", e.message);
+        return acc;
       }
-    })();
+      // Chat Completions 相容
+      if (payload.choices && payload.choices.length > 0 && payload.choices[0].message) {
+        return payload.choices[0].message.content || "";
+      }
+      return "";
+    }
 
     // ── DOM 元素 ──
     var cameraInput = document.getElementById("cameraInput");
@@ -1977,73 +1992,56 @@
       "\n" +
       "請開始識別。";
 
-    // ── OCR 處理核心 ──
+    // ── OCR 處理核心（ARK Responses API）──
     async function processOCR(base64Data, mimeType) {
       showLoading(true);
 
       try {
         var dataUrl = "data:" + (mimeType || "image/jpeg") + ";base64," + base64Data;
 
-        var requestBody = {
-          messages: [
-            {
-              role: "user",
-              content: [
-                {
-                  type: "image_url",
-                  image_url: {
-                    url: dataUrl,
-                    detail: "high"
-                  }
-                },
-                {
-                  type: "text",
-                  text: OCR_PROMPT
-                }
-              ]
-            }
-          ],
-          max_tokens: 1024,
-          temperature: 0.0
-        };
+        console.log("[OCR] 發送請求到 ARK:", ARK_ENDPOINT);
 
-        if (OCR_MODEL_NAME) {
-          requestBody.model = OCR_MODEL_NAME;
-        }
-
-        console.log("[OCR] 發送請求到:", OCR_API_BASE + "/v1/chat/completions");
-
-        var response = await fetch(OCR_API_BASE + "/v1/chat/completions", {
+        var response = await fetch(ARK_ENDPOINT, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(requestBody)
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + ARK_API_KEY
+          },
+          body: JSON.stringify({
+            model: ARK_MODEL,
+            input: [
+              {
+                role: "user",
+                content: [
+                  { type: "input_image", image_url: dataUrl },
+                  { type: "input_text", text: OCR_PROMPT }
+                ]
+              }
+            ]
+          })
         });
 
         if (!response.ok) {
           var errBody = "";
           try { errBody = await response.text(); } catch (_) {}
-          console.error("[OCR] API 返回錯誤:", response.status, errBody);
-          throw new Error("OCR API 錯誤 " + response.status + ": " + (errBody || response.statusText));
+          console.error("[OCR] ARK API 返回錯誤:", response.status, errBody);
+          throw new Error("ARK API 錯誤 " + response.status + ": " + (errBody || response.statusText));
         }
 
         var data = await response.json();
-        console.log("[OCR] API 完整回應:", JSON.stringify(data, null, 2));
+        console.log("[OCR] ARK 完整回應:", JSON.stringify(data, null, 2));
 
-        // 從 OpenAI 相容格式提取文本
-        var rawText = "";
-        if (data.choices && data.choices.length > 0 && data.choices[0].message) {
-          rawText = data.choices[0].message.content || "";
-        }
+        var rawText = extractTextFromArkResponse(data);
         console.log("[OCR] 提取文本:", rawText);
 
         if (!rawText) {
-          throw new Error("OCR 服務未返回任何識別結果");
+          throw new Error("ARK 服務未返回任何識別結果");
         }
 
         applyOCRResult(rawText);
       } catch (err) {
         console.error("[OCR] 識別失敗:", err);
-        alert("OCR 識別失敗\n\n" + err.message + "\n\n請確認 OCR 服務 (" + OCR_API_BASE + ") 是否正常運行。");
+        alert("OCR 識別失敗\n\n" + err.message);
       } finally {
         showLoading(false);
       }
