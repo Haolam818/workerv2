@@ -1557,7 +1557,7 @@
       Organization: ""
     };
     const ARK_API_KEY = "ark-96fd4580-272f-4406-b112-0aae21641272-12345"; // placeholder; replace later
-    const ARK_ENDPOINT = "https://ark.cn-beijing.volces.com/api/v3/responses";
+    const ARK_ENDPOINT = window.__ARK_ENDPOINT__ || "/ocr-api";
     const ARK_MODEL = "doubao-seed-1-6-flash-250828";
 
     let currentCardIndex = 0;
@@ -1770,25 +1770,30 @@
         "IDNoExpirationDate：請填入 Validity Period 的第二個日期，也就是 to 後方的日期，例如 17/05/2026；不要填 from 後方的開始日期。\n" +
         "JSON：{\n\"UserNameChi\":\"\",\n\"IDNo\":\"\",\n\"IDNoExpirationDate\":\"\"\n}";
 
-      const response = await fetch(ARK_ENDPOINT, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer " + ARK_API_KEY
-        },
-        body: JSON.stringify({
-          model: ARK_MODEL,
-          input: [
-            {
-              role: "user",
-              content: [
-                { type: "input_image", image_url: dataUrl },
-                { type: "input_text", text: prompt }
-              ]
-            }
-          ]
-        })
-      });
+      let response;
+      try {
+        response = await fetch(ARK_ENDPOINT, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + ARK_API_KEY
+          },
+          body: JSON.stringify({
+            model: ARK_MODEL,
+            input: [
+              {
+                role: "user",
+                content: [
+                  { type: "input_image", image_url: dataUrl },
+                  { type: "input_text", text: prompt }
+                ]
+              }
+            ]
+          })
+        });
+      } catch (networkErr) {
+        throw new Error("網絡請求失敗（可能是 CORS/代理未配置/網絡不可達）。請確認當前站點同源代理 /ocr-api 可用，或設定 window.__ARK_ENDPOINT__。原始錯誤：" + networkErr.message);
+      }
 
       const responseText = await response.text();
       let payload = {};

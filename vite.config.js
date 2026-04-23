@@ -5,9 +5,9 @@ export default defineConfig({
   server: {
     proxy: {
       '/ocr-api': {
-        target: 'http://192.168.4.68:8000',
+        target: 'https://ark.cn-beijing.volces.com',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/ocr-api/, '')
+        rewrite: (path) => path.replace(/^\/ocr-api/, '/api/v3/responses')
       }
     }
   }
