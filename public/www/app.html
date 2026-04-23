@@ -1944,15 +1944,51 @@
     var ocrNameEl = document.getElementById("ocrName");
 
     // ── 檔案選取處理 ──
-    function handlePickedFile(file) {
+    function resizeImageForOCR(file, maxSide, quality) {
+      return new Promise(function (resolve, reject) {
+        var image = new Image();
+        var objectUrl = URL.createObjectURL(file);
+
+        image.onload = function () {
+          URL.revokeObjectURL(objectUrl);
+
+          var width = image.naturalWidth || image.width;
+          var height = image.naturalHeight || image.height;
+          var scale = Math.min(1, maxSide / Math.max(width, height));
+          var targetWidth = Math.max(1, Math.round(width * scale));
+          var targetHeight = Math.max(1, Math.round(height * scale));
+
+          var canvas = document.createElement("canvas");
+          canvas.width = targetWidth;
+          canvas.height = targetHeight;
+          var ctx = canvas.getContext("2d");
+          ctx.drawImage(image, 0, 0, targetWidth, targetHeight);
+
+          var dataUrl = canvas.toDataURL("image/jpeg", quality);
+          resolve({
+            base64Data: dataUrl.split(",")[1] || "",
+            mimeType: "image/jpeg"
+          });
+        };
+
+        image.onerror = function () {
+          URL.revokeObjectURL(objectUrl);
+          reject(new Error("無法讀取圖片，請重新拍攝或選擇照片。"));
+        };
+
+        image.src = objectUrl;
+      });
+    }
+
+    async function handlePickedFile(file) {
       if (!file) return;
-      var reader = new FileReader();
-      reader.onload = function () {
-        var base64Data = String(reader.result || "").split(",")[1];
-        var mimeType = file.type || "image/jpeg";
-        processOCR(base64Data, mimeType);
-      };
-      reader.readAsDataURL(file);
+      try {
+        var compressed = await resizeImageForOCR(file, 1600, 0.75);
+        console.log("[OCR] 圖片已壓縮，base64長度:", compressed.base64Data.length);
+        processOCR(compressed.base64Data, compressed.mimeType);
+      } catch (err) {
+        alert("圖片處理失敗\n\n" + err.message);
+      }
     }
 
     cameraInput.addEventListener("change", function () {

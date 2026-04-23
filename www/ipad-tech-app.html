@@ -1917,15 +1917,29 @@
 
     function readFileAsBase64(file) {
       return new Promise(function (resolve, reject) {
-        const reader = new FileReader();
-        reader.onload = function () {
-          const result = typeof reader.result === "string" ? reader.result : "";
+        const image = new Image();
+        const objectUrl = URL.createObjectURL(file);
+
+        image.onload = function () {
+          URL.revokeObjectURL(objectUrl);
+          const width = image.naturalWidth || image.width;
+          const height = image.naturalHeight || image.height;
+          const scale = Math.min(1, 1600 / Math.max(width, height));
+          const canvas = document.createElement("canvas");
+          canvas.width = Math.max(1, Math.round(width * scale));
+          canvas.height = Math.max(1, Math.round(height * scale));
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+          const result = canvas.toDataURL("image/jpeg", 0.75);
           resolve(result.split(",")[1] || "");
         };
-        reader.onerror = function () {
-          reject(reader.error || new Error("Failed to read image file"));
+
+        image.onerror = function () {
+          URL.revokeObjectURL(objectUrl);
+          reject(new Error("Failed to read image file"));
         };
-        reader.readAsDataURL(file);
+
+        image.src = objectUrl;
       });
     }
 
@@ -1941,7 +1955,7 @@
 
       try {
         const imageData = await readFileAsBase64(file);
-        await window.scanSafetyCardWithOCR(imageData, file.type || "image/jpeg");
+        await window.scanSafetyCardWithOCR(imageData, "image/jpeg");
       } catch (error) {
         console.error("OCR scan failed.", error);
         scanStatus.className = "status-badge status-warning";
