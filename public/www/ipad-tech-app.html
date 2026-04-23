@@ -1557,7 +1557,7 @@
       Organization: ""
     };
     const ARK_API_KEY = "ark-96fd4580-272f-4406-b112-0aae21641272-12345"; // placeholder; replace later
-    const ARK_ENDPOINT = window.__ARK_ENDPOINT__ || "/ocr-api";
+    const ARK_ENDPOINT = window.__ARK_ENDPOINT__ || "https://ark.cn-beijing.volces.com/api/v3/responses";
     const ARK_MODEL = "doubao-seed-1-6-flash-250828";
 
     let currentCardIndex = 0;
@@ -1792,7 +1792,7 @@
           })
         });
       } catch (networkErr) {
-        throw new Error("網絡請求失敗（可能是 CORS/代理未配置/網絡不可達）。請確認當前站點同源代理 /ocr-api 可用，或設定 window.__ARK_ENDPOINT__。原始錯誤：" + networkErr.message);
+        throw new Error("網絡請求失敗（可能是 CORS 或網絡不可達）。目前請求地址：" + ARK_ENDPOINT + "。原始錯誤：" + networkErr.message);
       }
 
       const responseText = await response.text();
