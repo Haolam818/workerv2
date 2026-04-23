@@ -1,0 +1,8 @@
+name = "workerv2-ocr"
+main = "src/index.js"
+compatibility_date = "2026-04-23"
+
+[vars]
+# Set these in Cloudflare dashboard or via `wrangler secret put ...` for production.
+# GOOGLE_VISION_API_KEY = ""
+

@@ -1896,37 +1896,13 @@
      * ================================================================ */
 
     // ── OCR API 配置 ──
-    // Match the verified working call:
-    // POST http://192.168.4.68:8000/v1/chat/completions with model=GLM-OCR
-    const OCR_API_DIRECT = "http://192.168.4.68:8000";
-    const OCR_API_PROXY = "/ocr-api";
-    let OCR_API_BASE = OCR_API_DIRECT;
-    const OCR_MODEL_NAME = "GLM-OCR";
+    // Use cloud OCR proxy (do NOT call Google directly from iPad; it would expose API keys).
+    // Override at runtime by setting window.__CLOUD_OCR_ENDPOINT__.
+    const CLOUD_OCR_ENDPOINT = window.__CLOUD_OCR_ENDPOINT__ || "";
 
-    // ── 偵測是否需要使用代理（開發模式） ──
-    async function detectOCREndpoint() {
-      // 嘗試直接連接
-      try {
-        var res = await fetch(OCR_API_DIRECT + "/health", { method: "GET", signal: AbortSignal.timeout(3000) });
-        if (res.ok) {
-          OCR_API_BASE = OCR_API_DIRECT;
-          console.log("[OCR] 使用直連地址:", OCR_API_BASE);
-          return;
-        }
-      } catch (e) { /* 直連失敗 */ }
-
-      // 嘗試代理
-      try {
-        var res2 = await fetch(OCR_API_PROXY + "/health", { method: "GET", signal: AbortSignal.timeout(3000) });
-        if (res2.ok) {
-          OCR_API_BASE = OCR_API_PROXY;
-          console.log("[OCR] 使用代理地址:", OCR_API_BASE);
-          return;
-        }
-      } catch (e) { /* 代理也失敗 */ }
-
-      console.warn("[OCR] 無法連接 OCR 服務，將使用直連地址:", OCR_API_DIRECT);
-      OCR_API_BASE = OCR_API_DIRECT;
+    function resolveOCREndpoint() {
+      // Prefer explicit cloud endpoint; fallback to empty.
+      return CLOUD_OCR_ENDPOINT;
     }
 
     // ── DOM 元素 ──
@@ -1940,10 +1916,7 @@
     const ocrRawCard = document.getElementById("ocrRawCard");
     const ocrRawText = document.getElementById("ocrRawText");
 
-    // ── 初始化：偵測端點 ──
-    (async function initOCR() {
-      await detectOCREndpoint();
-    })();
+    const OCR_ENDPOINT = resolveOCREndpoint();
 
     function handlePickedFile(file) {
       if (!file) return;
@@ -1971,38 +1944,17 @@
       showLoading(true);
 
       try {
-        // iOS Safari blocks https -> http (mixed content). This message is clearer than "address error".
-        if (window.location.protocol === "https:" && OCR_API_BASE.startsWith("http://")) {
-          throw new Error("當前頁面為 HTTPS，瀏覽器會阻擋呼叫本地 HTTP OCR 服務。請在 App(WebView) 或本地 HTTP 環境測試，或為 OCR 服務配置 HTTPS。");
+        if (!OCR_ENDPOINT) {
+          throw new Error("未配置雲端 OCR 端點。請設定 window.__CLOUD_OCR_ENDPOINT__ 指向 Cloudflare Worker，例如 https://<your-worker>.workers.dev/ocr");
         }
 
-        var requestBody = {
-          model: OCR_MODEL_NAME,
-          messages: [
-            {
-              role: "user",
-              content: [
-                {
-                  type: "image_url",
-                  image_url: {
-                    url: "data:" + (mimeType || "image/jpeg") + ";base64," + base64Data
-                  }
-                },
-                {
-                  type: "text",
-                  text: "請仔細閱讀這張工人平安咭(建築工人註冊證)的圖片，提取以下資訊並以JSON格式返回：\n1. 平安咭號碼 (safety_card_no)\n2. 到期日期 (expiry_date，格式：YYYY/MM/DD)\n3. 姓名 (name)\n4. 工種 (trade)\n\n只返回JSON，不要其他文字。範例：\n{\"safety_card_no\":\"SK-1234-5678\",\"expiry_date\":\"2027/10/12\",\"name\":\"張三\",\"trade\":\"電工\"}"
-                }
-              ]
-            }
-          ],
-          max_tokens: 2048,
-          temperature: 0.1
-        };
-
-        var response = await fetch(OCR_API_BASE + "/v1/chat/completions", {
+        var response = await fetch(OCR_ENDPOINT, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(requestBody)
+          body: JSON.stringify({
+            image_base64: base64Data,
+            mime_type: mimeType || "image/jpeg"
+          })
         });
 
         if (!response.ok) {
@@ -2011,14 +1963,12 @@
         }
 
         var data = await response.json();
-        var content = data.choices && data.choices[0] && data.choices[0].message
-          ? data.choices[0].message.content
-          : "";
-
+        var fields = data && data.fields ? data.fields : {};
+        var content = data && typeof data.raw_text === "string" ? data.raw_text : JSON.stringify(fields || {});
         applyOCRResult(content);
       } catch (err) {
         console.error("[OCR] 識別失敗:", err);
-        alert("OCR 識別失敗\n\n" + err.message + "\n\n請確認 OCR 服務 (" + OCR_API_BASE + ") 是否正常運行。");
+        alert("OCR 識別失敗\n\n" + err.message);
       } finally {
         showLoading(false);
       }

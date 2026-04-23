@@ -1556,10 +1556,7 @@
       CompanyChi: "",
       Organization: ""
     };
-    const OCR_API_DIRECT = "http://192.168.4.68:8000";
-    const OCR_API_PROXY = "/ocr-api";
-    let OCR_API_BASE = window.location.protocol === "file:" ? OCR_API_DIRECT : OCR_API_PROXY;
-    const OCR_MODEL_NAME = "GLM-OCR";
+    const CLOUD_OCR_ENDPOINT = window.__CLOUD_OCR_ENDPOINT__ || "";
 
     let currentCardIndex = 0;
     let currentTypeFilter = "all";
@@ -1699,23 +1696,8 @@
       return response.json();
     }
 
-    async function detectOCREndpoint() {
-      const candidates = window.location.protocol === "file:"
-        ? [OCR_API_DIRECT]
-        : [OCR_API_PROXY, OCR_API_DIRECT];
-
-      for (const base of candidates) {
-        try {
-          const response = await fetch(base + "/health", { method: "GET" });
-          if (response.ok) {
-            OCR_API_BASE = base;
-            return;
-          }
-        } catch (error) {
-        }
-      }
-
-      OCR_API_BASE = candidates[0] || OCR_API_DIRECT;
+    function resolveOCREndpoint() {
+      return CLOUD_OCR_ENDPOINT;
     }
 
     function normalizeOCRDate(value) {
@@ -1736,48 +1718,31 @@
     }
 
     async function requestOCRScan(imageData, mimeType) {
-      const body = {
-        model: OCR_MODEL_NAME,
-        messages: [
-          {
-            role: "user",
-            content: [
-              {
-                type: "image_url",
-                image_url: {
-                  url: "data:" + (mimeType || "image/jpeg") + ";base64," + imageData
-                }
-              },
-              {
-                type: "text",
-                text: "請仔細閱讀這張工人平安咭(建築工人註冊證)的圖片，提取以下資訊並以JSON格式返回：safety_card_no、expiry_date(YYYY-MM-DD)、name、trade。只返回JSON，不要其他文字。"
-              }
-            ]
-          }
-        ],
-        max_tokens: 2048,
-        temperature: 0.1
-      };
-
-      const response = await fetch(OCR_API_BASE + "/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(body)
-      });
-
-      if (!response.ok) {
-        throw new Error("OCR request failed: " + response.status);
+      const endpoint = resolveOCREndpoint();
+      if (!endpoint) {
+        throw new Error("未配置雲端 OCR 端點。請設定 window.__CLOUD_OCR_ENDPOINT__ 指向 Cloudflare Worker，例如 https://<your-worker>.workers.dev/ocr");
       }
 
-      return response.json();
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          image_base64: imageData,
+          mime_type: mimeType || "image/jpeg"
+        })
+      });
+
+      const payload = await response.json().catch(function () { return {}; });
+      if (!response.ok) {
+        throw new Error(payload?.error?.message || ("OCR request failed: " + response.status));
+      }
+
+      return payload;
     }
 
     function parseOCRContent(payload) {
-      const raw = payload?.choices?.[0]?.message?.content
-        || payload?.choices?.[0]?.text
-        || payload?.output_text
+      const raw = payload?.raw_text
+        || payload?.fields
         || payload?.data
         || payload;
 
@@ -1802,11 +1767,11 @@
     }
 
     function normalizeOCRFields(payload) {
-      const data = parseOCRContent(payload);
+      const data = parseOCRContent(payload) || {};
       return {
         name: data.name || data.holder_name || data.card_holder_name,
-        safetyNo: data.safetyNo || data.safety_no || data.safety_card_no || data.card_number || data.number,
-        safetyExpiry: normalizeOCRDate(data.safetyExpiry || data.safety_expiry || data.expiry_date || data.expiryDate),
+        safetyNo: data.safety_card_no || data.safetyNo || data.safety_no || data.card_number || data.number,
+        safetyExpiry: normalizeOCRDate(data.expiry_date || data.safetyExpiry || data.safety_expiry || data.expiryDate || data.expiry),
         role: data.trade || data.role || data.job || ""
       };
     }
@@ -2243,7 +2208,7 @@
     statusFilter.addEventListener("change", renderRecordList);
     refreshButton.addEventListener("click", renderRecordList);
 
-    detectOCREndpoint();
+    // Cloud OCR endpoint is configured via window.__CLOUD_OCR_ENDPOINT__.
 
     exitButton.addEventListener("click", async function () {
       const record = records.find(function (item) { return item.id === selectedRecordId; });
