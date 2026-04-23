@@ -1896,13 +1896,40 @@
      * ================================================================ */
 
     // ── OCR API 配置 ──
-    // Use cloud OCR proxy (do NOT call Google directly from iPad; it would expose API keys).
-    // Override at runtime by setting window.__CLOUD_OCR_ENDPOINT__.
-    const CLOUD_OCR_ENDPOINT = window.__CLOUD_OCR_ENDPOINT__ || "";
+    // Directly call Doubao ARK Responses API (NOTE: embedding API keys in frontend is insecure).
+    const ARK_API_KEY = "ark-96fd4580-272f-4406-b112-0aae21641272-12345"; // placeholder; replace later
+    const ARK_ENDPOINT = "https://ark.cn-beijing.volces.com/api/v3/responses";
+    const ARK_MODEL = "doubao-seed-1-6-flash-250828";
 
-    function resolveOCREndpoint() {
-      // Prefer explicit cloud endpoint; fallback to empty.
-      return CLOUD_OCR_ENDPOINT;
+    function extractTextFromArkResponse(payload) {
+      if (!payload) return "";
+      if (typeof payload.output_text === "string") return payload.output_text;
+      const out = payload.output;
+      if (Array.isArray(out)) {
+        let acc = "";
+        for (const item of out) {
+          const content = item && item.content;
+          if (!Array.isArray(content)) continue;
+          for (const part of content) {
+            if (!part) continue;
+            if (typeof part.text === "string") acc += part.text;
+            if (typeof part.output_text === "string") acc += part.output_text;
+          }
+        }
+        return acc;
+      }
+      return "";
+    }
+
+    function extractJsonFromText(text) {
+      var raw = String(text || "");
+      var jsonMatch = raw.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) return null;
+      try {
+        return JSON.parse(jsonMatch[0]);
+      } catch (e) {
+        return null;
+      }
     }
 
     // ── DOM 元素 ──
@@ -1944,27 +1971,42 @@
       showLoading(true);
 
       try {
-        if (!OCR_ENDPOINT) {
-          throw new Error("未配置雲端 OCR 端點。請設定 window.__CLOUD_OCR_ENDPOINT__ 指向 Cloudflare Worker，例如 https://<your-worker>.workers.dev/ocr");
-        }
+        var dataUrl = "data:" + (mimeType || "image/jpeg") + ";base64," + base64Data;
+        var prompt =
+          "请识别图片中的文字，并提取以下字段，只返回严格JSON，不要多余文字：\\n" +
+          "name（持證人姓名）\\n" +
+          "safety_card_no（平安咭編號）\\n" +
+          "expiry_date（平安咭過期日，格式YYYY/MM/DD）";
 
-        var response = await fetch(OCR_ENDPOINT, {
+        var response = await fetch(ARK_ENDPOINT, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + ARK_API_KEY
+          },
           body: JSON.stringify({
-            image_base64: base64Data,
-            mime_type: mimeType || "image/jpeg"
+            model: ARK_MODEL,
+            input: [
+              {
+                role: "user",
+                content: [
+                  { type: "input_image", image_url: dataUrl },
+                  { type: "input_text", text: prompt }
+                ]
+              }
+            ]
           })
         });
 
         if (!response.ok) {
           var errData = await response.json().catch(function () { return {}; });
-          throw new Error("API 錯誤 " + response.status + ": " + (errData.error ? errData.error.message : response.statusText));
+          throw new Error("ARK API 錯誤 " + response.status + ": " + (errData.error ? errData.error.message : response.statusText));
         }
 
         var data = await response.json();
-        var fields = data && data.fields ? data.fields : {};
-        var content = data && typeof data.raw_text === "string" ? data.raw_text : JSON.stringify(fields || {});
+        var rawText = extractTextFromArkResponse(data);
+        var parsed = extractJsonFromText(rawText);
+        var content = parsed ? JSON.stringify(parsed) : rawText;
         applyOCRResult(content);
       } catch (err) {
         console.error("[OCR] 識別失敗:", err);

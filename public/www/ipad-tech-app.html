@@ -1556,7 +1556,9 @@
       CompanyChi: "",
       Organization: ""
     };
-    const CLOUD_OCR_ENDPOINT = window.__CLOUD_OCR_ENDPOINT__ || "";
+    const ARK_API_KEY = "ark-96fd4580-272f-4406-b112-0aae21641272-12345"; // placeholder; replace later
+    const ARK_ENDPOINT = "https://ark.cn-beijing.volces.com/api/v3/responses";
+    const ARK_MODEL = "doubao-seed-1-6-flash-250828";
 
     let currentCardIndex = 0;
     let currentTypeFilter = "all";
@@ -1696,8 +1698,35 @@
       return response.json();
     }
 
-    function resolveOCREndpoint() {
-      return CLOUD_OCR_ENDPOINT;
+    function extractTextFromArkResponse(payload) {
+      if (!payload) return "";
+      if (typeof payload.output_text === "string") return payload.output_text;
+      const out = payload.output;
+      if (Array.isArray(out)) {
+        let acc = "";
+        for (const item of out) {
+          const content = item && item.content;
+          if (!Array.isArray(content)) continue;
+          for (const part of content) {
+            if (!part) continue;
+            if (typeof part.text === "string") acc += part.text;
+            if (typeof part.output_text === "string") acc += part.output_text;
+          }
+        }
+        return acc;
+      }
+      return "";
+    }
+
+    function extractJsonFromText(text) {
+      var raw = String(text || "");
+      var jsonMatch = raw.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) return null;
+      try {
+        return JSON.parse(jsonMatch[0]);
+      } catch (e) {
+        return null;
+      }
     }
 
     function normalizeOCRDate(value) {
@@ -1718,17 +1747,30 @@
     }
 
     async function requestOCRScan(imageData, mimeType) {
-      const endpoint = resolveOCREndpoint();
-      if (!endpoint) {
-        throw new Error("未配置雲端 OCR 端點。請設定 window.__CLOUD_OCR_ENDPOINT__ 指向 Cloudflare Worker，例如 https://<your-worker>.workers.dev/ocr");
-      }
+      const dataUrl = `data:${mimeType || "image/jpeg"};base64,${imageData}`;
+      const prompt =
+        "请识别图片中的文字，并提取以下字段，只返回严格JSON，不要多余文字：\n" +
+        "name（持證人姓名）\n" +
+        "safety_card_no（平安咭編號）\n" +
+        "expiry_date（平安咭過期日，格式YYYY/MM/DD）";
 
-      const response = await fetch(endpoint, {
+      const response = await fetch(ARK_ENDPOINT, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + ARK_API_KEY
+        },
         body: JSON.stringify({
-          image_base64: imageData,
-          mime_type: mimeType || "image/jpeg"
+          model: ARK_MODEL,
+          input: [
+            {
+              role: "user",
+              content: [
+                { type: "input_image", image_url: dataUrl },
+                { type: "input_text", text: prompt }
+              ]
+            }
+          ]
         })
       });
 
@@ -1737,12 +1779,17 @@
         throw new Error(payload?.error?.message || ("OCR request failed: " + response.status));
       }
 
-      return payload;
+      const rawText = extractTextFromArkResponse(payload);
+      const parsed = extractJsonFromText(rawText);
+      return {
+        raw_text: rawText,
+        fields: parsed || {}
+      };
     }
 
     function parseOCRContent(payload) {
-      const raw = payload?.raw_text
-        || payload?.fields
+      const raw = payload?.fields
+        || payload?.raw_text
         || payload?.data
         || payload;
 
@@ -2208,7 +2255,7 @@
     statusFilter.addEventListener("change", renderRecordList);
     refreshButton.addEventListener("click", renderRecordList);
 
-    // Cloud OCR endpoint is configured via window.__CLOUD_OCR_ENDPOINT__.
+    // Direct ARK call uses embedded placeholder key; replace it before real use.
 
     exitButton.addEventListener("click", async function () {
       const record = records.find(function (item) { return item.id === selectedRecordId; });
