@@ -252,6 +252,21 @@
       flex-wrap: wrap;
     }
 
+    .form-action-bar {
+      position: sticky;
+      bottom: 0;
+      z-index: 5;
+      margin-top: 18px;
+      padding-top: 14px;
+      padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 6px);
+      background: linear-gradient(180deg, rgba(248, 251, 255, 0), rgba(248, 251, 255, 0.96) 22%, #f8fbff 100%);
+    }
+
+    .form-action-bar .button {
+      width: 100%;
+      justify-content: center;
+    }
+
     .upload-trigger {
       position: relative;
       overflow: hidden;
@@ -1225,7 +1240,7 @@
                 </div>
               </div>
               <p class="hint">系統提交時會自動寫入入場時間。如平安咭已過期，系統將彈出提示讓職員確認。</p>
-              <div class="action-row">
+              <div class="action-row form-action-bar">
                 <button class="button button-primary" type="button" id="submitButton"><i class="fa-solid fa-floppy-disk"></i> 補充登記儲存</button>
               </div>
             </section>
@@ -1981,12 +1996,13 @@
     function renderRecentTimeline() {
       recentTimeline.innerHTML = "";
       records.slice(0, 3).forEach(function (record) {
+        const companyRole = [record.company, record.role].filter(Boolean).join(" / ") || "待補充工作資料";
         const item = document.createElement("div");
         item.className = "timeline-item";
         item.innerHTML = `
           <div>
             <strong>${record.name}</strong>
-            <span>${record.company} / ${record.role}</span>
+            <span>${companyRole}</span>
           </div>
           <small>${record.entryTime}</small>
         `;
@@ -2037,6 +2053,10 @@
       }
 
       list.forEach(function (record) {
+        const workerMeta = [record.workerId, record.phone].filter(Boolean).join(" / ") || "待補充工人資料";
+        const companyText = record.company || "待補充所屬機構";
+        const roleText = record.role || "待補充職別";
+        const typeTag = record.workerType ? getTypeTag(record.workerType) : "";
         const item = document.createElement("button");
         item.type = "button";
         item.className = "record-item" + (record.id === selectedRecordId ? " active" : "");
@@ -2045,12 +2065,12 @@
             <div class="avatar">${record.name.charAt(0)}</div>
             <div>
               <h4>${record.name}</h4>
-              <p>${record.workerId} / ${record.phone}</p>
+              <p>${workerMeta}</p>
             </div>
           </div>
           <div class="record-cell">
-            <div>${record.company}</div>
-            <div class="record-cell soft">${record.role} ${getTypeTag(record.workerType)}</div>
+            <div>${companyText}</div>
+            <div class="record-cell soft">${roleText} ${typeTag}</div>
           </div>
           <div class="record-cell">
             <div>入場 ${record.entryTime}</div>
@@ -2077,20 +2097,20 @@
       detailPanel.hidden = false;
 
       detailName.textContent = record.name;
-      detailSub.textContent = record.company + " / " + record.role;
+      detailSub.textContent = [record.company, record.role].filter(Boolean).join(" / ") || "待補充工作資料";
       detailRecordId.textContent = record.id;
       detailStatus.innerHTML = getStatusTag(record.status);
 
       detailGrid.innerHTML = [
-        ["聯絡電話", record.phone],
-        ["出生日期", record.dob],
-        ["性別", record.gender],
-        ["工作證編號", record.workerId],
-        ["工人證類型", record.workerType],
-        ["有效出入時間", record.accessWindow],
-        ["出入目的", record.purpose],
-        ["平安咭號碼", record.safetyNo],
-        ["平安咭過期日", record.safetyExpiry],
+        ["聯絡電話", record.phone || ""],
+        ["出生日期", record.dob || ""],
+        ["性別", record.gender || ""],
+        ["工作證編號", record.workerId || ""],
+        ["工人證類型", record.workerType || ""],
+        ["有效出入時間", record.accessWindow || ""],
+        ["出入目的", record.purpose || ""],
+        ["平安咭號碼", record.safetyNo || ""],
+        ["平安咭過期日", record.safetyExpiry || ""],
         ["備註", record.remark || "-"],
         ["入場時間", record.entryTime],
         ["離場時間", record.exitTime]
