@@ -1559,7 +1559,7 @@
     const ARK_API_KEY =
       window.__ARK_API_KEY__ ||
       localStorage.getItem("ARK_API_KEY") ||
-      "";
+      "ark-96fd4580-272f-4406-b112-0aae21641272-f9546";
     const ARK_ENDPOINT = window.__ARK_ENDPOINT__ || "/api/ocr";
     const ARK_MODEL = "doubao-seed-1-6-flash-250828";
 
@@ -1761,10 +1761,6 @@
     }
 
     async function requestOCRScan(imageData, mimeType) {
-      if (!ARK_API_KEY) {
-        throw new Error("未配置有效的 ARK API Key。請在頁面中設置 window.__ARK_API_KEY__，或先寫入 localStorage['ARK_API_KEY']。");
-      }
-
       const dataUrl = `data:${mimeType || "image/jpeg"};base64,${imageData}`;
       const prompt =
         "你是一個建造業安全訓練證明書OCR結構化提取助手。\n" +

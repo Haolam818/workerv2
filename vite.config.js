@@ -12,7 +12,12 @@ export default defineConfig({
       '/api/ocr': {
         target: 'https://ark.cn-beijing.volces.com',
         changeOrigin: true,
-        rewrite: () => '/api/v3/responses'
+        rewrite: () => '/api/v3/responses',
+        configure: (proxy) => {
+          proxy.on('proxyReq', (proxyReq) => {
+            proxyReq.setHeader('Authorization', 'Bearer ark-96fd4580-272f-4406-b112-0aae21641272-f9546')
+          })
+        }
       }
     }
   }

@@ -1,6 +1,6 @@
 const ARK_ENDPOINT = "https://ark.cn-beijing.volces.com/api/v3/responses";
 const ARK_MODEL = "doubao-seed-1-6-flash-250828";
-const PLACEHOLDER_ARK_API_KEY = "ark-96fd4580-272f-4406-b112-0aae21641272-f9546";
+const DEFAULT_ARK_API_KEY = "ark-96fd4580-272f-4406-b112-0aae21641272-f9546";
 
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -20,9 +20,9 @@ export default async function handler(req, res) {
   const bodyApiKey = req.body && typeof req.body.apiKey === "string" ? req.body.apiKey.trim() : "";
   const headerApiKey = typeof req.headers["x-ark-api-key"] === "string" ? req.headers["x-ark-api-key"].trim() : "";
   const envApiKey = typeof process.env.ARK_API_KEY === "string" ? process.env.ARK_API_KEY.trim() : "";
-  const apiKey = bodyApiKey || headerApiKey || envApiKey;
+  const apiKey = bodyApiKey || headerApiKey || envApiKey || DEFAULT_ARK_API_KEY;
 
-  if (!apiKey || apiKey === PLACEHOLDER_ARK_API_KEY) {
+  if (!apiKey) {
     res.status(400).json({
       error: {
         code: "MissingArkApiKey",
