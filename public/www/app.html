@@ -1308,23 +1308,23 @@
                 <div class="form-grid">
                   <div class="field full">
                     <label>姓名</label>
-                    <input type="text" value="張志強">
+                    <input id="workerName" type="text" value="">
                   </div>
                   <div class="field">
                     <label>聯絡號碼</label>
-                    <input type="text" value="9123 4567" style="padding-left: 16px;">
+                    <input id="phone" type="text" value="" style="padding-left: 16px;">
                   </div>
                   <div class="field">
                     <label>出生日期</label>
-                    <input type="text" value="1987/06/21" style="padding-left: 16px;">
+                    <input id="dob" type="text" value="" style="padding-left: 16px;">
                   </div>
                   <div class="field">
                     <label>性別</label>
-                    <select style="padding-left: 16px;"><option selected>男</option><option>女</option></select>
+                    <select id="gender" style="padding-left: 16px;"><option value="" selected>請選擇</option><option>男</option><option>女</option></select>
                   </div>
                   <div class="field">
                     <label>工人證編號</label>
-                    <input type="text" value="WK-2026-0184" style="padding-left: 16px;">
+                    <input id="workerId" type="text" value="" style="padding-left: 16px;">
                   </div>
                   <div class="field full">
                     <label>工人證類型</label>
@@ -1335,11 +1335,11 @@
                   </div>
                   <div class="field">
                     <label>有效出入時間</label>
-                    <input type="text" value="2026/04/13 09:00 - 18:00" style="padding-left: 16px;">
+                    <input id="accessWindow" type="text" value="" style="padding-left: 16px;">
                   </div>
                   <div class="field">
                     <label>出入目的</label>
-                    <select style="padding-left: 16px;"><option selected>冷氣檢修</option><option>水電維修</option><option>定期保養</option></select>
+                    <select id="purpose" style="padding-left: 16px;"><option value="" selected>請選擇</option><option>冷氣檢修</option><option>水電維修</option><option>定期保養</option></select>
                   </div>
                 </div>
               </section>
@@ -1353,23 +1353,23 @@
                 <div class="form-grid" style="grid-template-columns: 1fr;">
                   <div class="field">
                     <label>所屬機構</label>
-                    <input type="text" value="宏信機電工程有限公司" style="padding-left: 16px;">
+                    <input id="company" type="text" value="" style="padding-left: 16px;">
                   </div>
                   <div class="field">
                     <label>職別</label>
-                    <select style="padding-left: 16px;"><option selected>冷氣技工</option><option>電工</option><option>水喉技工</option></select>
+                    <select id="role" style="padding-left: 16px;"><option value="" selected>請選擇</option><option>冷氣技工</option><option>電工</option><option>水喉技工</option></select>
                   </div>
                   <div class="field">
                     <label>平安咭號碼</label>
-                    <input type="text" value="SK-4839-2201" style="padding-left: 16px;">
+                    <input id="safetyNo" type="text" value="" style="padding-left: 16px;">
                   </div>
                   <div class="field">
                     <label>平安咭過期日</label>
-                    <input type="text" value="2027/10/12" style="padding-left: 16px;">
+                    <input id="safetyExpiry" type="text" value="" style="padding-left: 16px;">
                   </div>
                   <div class="field">
                     <label>補充備註</label>
-                    <textarea>冷氣機房 A2 例行維修，由物業工程部安排進場，預計下午 4:30 完成。</textarea>
+                    <textarea id="remark"></textarea>
                   </div>
                   <div class="field">
                     <label>附加標籤</label>
@@ -1378,6 +1378,9 @@
                       <div class="chip"><i class="fa-solid fa-helmet-safety"></i> 已核對裝備</div>
                       <div class="chip"><i class="fa-solid fa-file-shield"></i> 已讀取平安咭</div>
                     </div>
+                  </div>
+                  <div class="field">
+                    <button class="button button-primary" id="saveRecordButton" type="button" style="width: 100%;"><i class="fa-solid fa-floppy-disk"></i> 補充登記儲存</button>
                   </div>
                 </div>
               </section>
@@ -1711,6 +1714,21 @@
       timeline: document.getElementById("detailTimeline"),
       action: document.getElementById("detailAction")
     };
+    const formFields = {
+      workerName: document.getElementById("workerName"),
+      phone: document.getElementById("phone"),
+      dob: document.getElementById("dob"),
+      gender: document.getElementById("gender"),
+      workerId: document.getElementById("workerId"),
+      accessWindow: document.getElementById("accessWindow"),
+      purpose: document.getElementById("purpose"),
+      company: document.getElementById("company"),
+      role: document.getElementById("role"),
+      safetyNo: document.getElementById("safetyNo"),
+      safetyExpiry: document.getElementById("safetyExpiry"),
+      remark: document.getElementById("remark")
+    };
+    const saveRecordButton = document.getElementById("saveRecordButton");
 
     function updateTime() {
       const now = new Date();
@@ -1740,6 +1758,11 @@
       });
     }
 
+    function formatRecordLine(parts, fallback) {
+      const text = parts.filter(Boolean).join(" · ");
+      return text || fallback;
+    }
+
     function renderRecordList() {
       const list = filteredRecords();
       recordList.innerHTML = "";
@@ -1767,7 +1790,7 @@
               <div class="record-avatar"><i class="fa-solid fa-user"></i></div>
               <div>
                 <h4>${record.name}</h4>
-                <p>${record.workerId} · ${record.role}<br>${record.company}</p>
+                <p>${formatRecordLine([record.workerId, record.role], "待補充工人資料")}<br>${record.company || "待補充所屬機構"}</p>
               </div>
             </div>
             <span class="status ${getStatusClass(record.status)}"><i class="fa-solid fa-circle"></i>${record.statusText}</span>
@@ -1798,19 +1821,19 @@
       detailPanel.classList.remove("hidden");
 
       detailFields.name.textContent = record.name;
-      detailFields.companyRole.textContent = record.company + ' · ' + record.role;
+      detailFields.companyRole.textContent = formatRecordLine([record.company, record.role], "待補充工作資料");
       detailFields.recordId.textContent = record.id;
       detailFields.status.innerHTML = '<span class="status ' + getStatusClass(record.status) + '"><i class="fa-solid fa-circle"></i>' + record.statusText + '</span>';
       detailFields.entry.textContent = record.entry;
       detailFields.exit.textContent = record.exit;
-      detailFields.phone.textContent = record.phone;
+      detailFields.phone.textContent = record.phone || "";
       detailFields.staff.textContent = record.staff;
-      detailFields.workerId.textContent = record.workerId;
-      detailFields.type.textContent = record.type;
-      detailFields.company.textContent = record.company;
-      detailFields.role.textContent = record.role;
-      detailFields.purpose.textContent = record.purpose;
-      detailFields.safety.textContent = record.safety;
+      detailFields.workerId.textContent = record.workerId || "";
+      detailFields.type.textContent = record.type || "";
+      detailFields.company.textContent = record.company || "";
+      detailFields.role.textContent = record.role || "";
+      detailFields.purpose.textContent = record.purpose || "";
+      detailFields.safety.textContent = record.safety || "";
       detailFields.action.innerHTML = record.status === "in"
         ? '<i class="fa-solid fa-right-from-bracket"></i> 登記離場'
         : '<i class="fa-solid fa-eye"></i> 查看處理';
@@ -1852,6 +1875,44 @@
       }
     }
 
+    function resetRegistrationForm() {
+      Object.keys(formFields).forEach(function (key) {
+        var field = formFields[key];
+        if (!field) return;
+        if (field.tagName === "SELECT") {
+          field.selectedIndex = 0;
+        } else {
+          field.value = "";
+        }
+      });
+    }
+
+    function createRecordFromForm() {
+      var now = new Date();
+      var timeLabel = now.toLocaleTimeString("zh-HK", { hour: "2-digit", minute: "2-digit" });
+      return {
+        id: "REC-" + now.getTime(),
+        name: formFields.workerName.value.trim(),
+        workerId: formFields.workerId.value.trim(),
+        role: formFields.role.value,
+        company: formFields.company.value.trim(),
+        phone: formFields.phone.value.trim(),
+        type: "",
+        purpose: formFields.purpose.value,
+        safety: formFields.safetyNo.value.trim(),
+        staff: "陳職員",
+        entry: timeLabel,
+        exit: "尚未離場",
+        status: "in",
+        statusText: "在場",
+        summary: "已根據平安咭 OCR 結果建立登記記錄",
+        timeline: [
+          { icon: "fa-camera", title: timeLabel + " 已掃描平安咭", text: "姓名、平安咭號碼與到期日已帶入。" },
+          { icon: "fa-door-open", title: timeLabel + " 已登記入場", text: "已儲存到記錄列表。" }
+        ]
+      };
+    }
+
     loginButton.addEventListener("click", function () {
       loginScreen.classList.add("hidden");
       appShell.classList.remove("hidden");
@@ -1882,11 +1943,27 @@
       chip.addEventListener("click", function () {
         currentQuickFilter = chip.dataset.quickFilter;
         statusSelect.value = "all";
-        quickFilters.forEach(function (item) {
-          item.classList.toggle("active", item === chip);
-        });
-        renderRecordList();
+      quickFilters.forEach(function (item) {
+        item.classList.toggle("active", item === chip);
       });
+      renderRecordList();
+    });
+    });
+
+    saveRecordButton.addEventListener("click", function () {
+      if (!formFields.workerName.value.trim() || !formFields.safetyNo.value.trim() || !formFields.safetyExpiry.value.trim()) {
+        alert("請先確認姓名、平安咭號碼及平安咭過期日。");
+        return;
+      }
+
+      var record = createRecordFromForm();
+      records.unshift(record);
+      selectedRecordId = record.id;
+      renderRecordList();
+      renderDetail(record);
+      setView("records");
+      resetRegistrationForm();
+      scanResultPanel.style.display = "none";
     });
 
     updateTime();
@@ -2159,11 +2236,18 @@
 
       console.log("[OCR] 結果已填入 → 姓名:", name, "| 平安咭號碼:", safetyNo, "| 過期日:", expiry);
 
-      // 嘗試自動填入表單欄位
-      if (name && name !== "--") {
-        var nameInput = document.querySelector('.form-grid .field.full input[type="text"]');
-        if (nameInput) nameInput.value = name;
-      }
+      if (formFields.workerName) formFields.workerName.value = name !== "--" ? name : "";
+      if (formFields.safetyNo) formFields.safetyNo.value = safetyNo !== "--" ? safetyNo : "";
+      if (formFields.safetyExpiry) formFields.safetyExpiry.value = expiry !== "--" ? expiry : "";
+      if (formFields.phone) formFields.phone.value = "";
+      if (formFields.dob) formFields.dob.value = "";
+      if (formFields.gender) formFields.gender.selectedIndex = 0;
+      if (formFields.workerId) formFields.workerId.value = "";
+      if (formFields.accessWindow) formFields.accessWindow.value = "";
+      if (formFields.purpose) formFields.purpose.selectedIndex = 0;
+      if (formFields.company) formFields.company.value = "";
+      if (formFields.role) formFields.role.selectedIndex = 0;
+      if (formFields.remark) formFields.remark.value = "";
     }
 
     // ── Loading 顯示控制 ──
