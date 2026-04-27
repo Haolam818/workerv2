@@ -1184,17 +1184,19 @@
                 <div class="field">
                   <label for="workerType">工人證類型</label>
                   <select id="workerType">
+                    <option value="">請選擇</option>
                     <option>長期</option>
                     <option>臨期</option>
                   </select>
                 </div>
                 <div class="field">
                   <label for="accessWindow">有效出入時間</label>
-                  <input id="accessWindow" type="text" value="09:00 - 18:00">
+                  <input id="accessWindow" type="text" placeholder="例如 09:00 - 18:00">
                 </div>
                 <div class="field">
                   <label for="purpose">出入目的</label>
                   <select id="purpose">
+                    <option value="">請選擇</option>
                     <option>維修工程</option>
                     <option>設備巡檢</option>
                     <option>清潔保養</option>
@@ -1224,7 +1226,7 @@
               </div>
               <p class="hint">系統提交時會自動寫入入場時間。如平安咭已過期，系統將彈出提示讓職員確認。</p>
               <div class="action-row">
-                <button class="button button-primary" type="button" id="submitButton"><i class="fa-solid fa-circle-plus"></i> 提交登記</button>
+                <button class="button button-primary" type="button" id="submitButton"><i class="fa-solid fa-floppy-disk"></i> 補充登記儲存</button>
               </div>
             </section>
           </div>
@@ -1868,19 +1870,20 @@
     };
 
     function applyCardData(card) {
-      fields.workerName.value = card.name ?? fields.workerName.value;
-      fields.phone.value = card.phone ?? fields.phone.value;
-      fields.dob.value = card.dob ?? fields.dob.value;
-      fields.gender.value = card.gender ?? fields.gender.value;
-      fields.workerId.value = card.workerId ?? fields.workerId.value;
-      fields.workerType.value = card.workerType ?? fields.workerType.value;
-      fields.accessWindow.value = card.accessWindow ?? fields.accessWindow.value;
-      fields.purpose.value = card.purpose ?? fields.purpose.value;
-      fields.role.value = card.role ?? fields.role.value;
-      fields.company.value = card.company ?? fields.company.value;
-      fields.safetyNo.value = card.safetyNo ?? fields.safetyNo.value;
-      fields.safetyExpiry.value = card.safetyExpiry ?? fields.safetyExpiry.value;
-      fields.remark.value = card.remark ?? fields.remark.value;
+      fields.workerName.value = card.name || "";
+      fields.safetyNo.value = card.safetyNo || "";
+      fields.safetyExpiry.value = card.safetyExpiry || "";
+
+      fields.phone.value = "";
+      fields.dob.value = "";
+      fields.gender.value = "";
+      fields.workerId.value = "";
+      fields.workerType.value = "";
+      fields.accessWindow.value = "";
+      fields.purpose.value = "";
+      fields.role.value = "";
+      fields.company.value = "";
+      fields.remark.value = "";
 
       scanName.textContent = fields.workerName.value || "未識別";
       scanSafetyNo.textContent = fields.safetyNo.value || "未識別";
@@ -1908,9 +1911,6 @@
         }
       });
 
-      fields.workerType.value = "長期";
-      fields.accessWindow.value = "09:00 - 18:00";
-      fields.purpose.value = "維修工程";
       scanName.textContent = "未識別";
       scanSafetyNo.textContent = "未識別";
       scanExpiry.textContent = "未識別";
@@ -2128,12 +2128,6 @@
     function validateForm() {
       const required = [
         fields.workerName,
-        fields.phone,
-        fields.dob,
-        fields.gender,
-        fields.workerId,
-        fields.role,
-        fields.company,
         fields.safetyNo,
         fields.safetyExpiry
       ];
@@ -2153,9 +2147,9 @@
         dob: fields.dob.value,
         gender: fields.gender.value,
         workerId: fields.workerId.value.trim(),
-        workerType: fields.workerType.value,
+        workerType: fields.workerType.value || "",
         accessWindow: fields.accessWindow.value.trim(),
-        purpose: fields.purpose.value,
+        purpose: fields.purpose.value || "",
         role: fields.role.value.trim(),
         company: fields.company.value.trim(),
         safetyNo: fields.safetyNo.value.trim(),
@@ -2244,7 +2238,7 @@
 
     submitButton.addEventListener("click", async function () {
       if (!validateForm()) {
-        window.alert("請先完成必填欄位，再提交登記。");
+        window.alert("請先確認姓名、平安咭號碼及平安咭過期日，再儲存登記。");
         return;
       }
 
