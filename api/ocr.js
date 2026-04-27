@@ -1,6 +1,6 @@
 const ARK_ENDPOINT = "https://ark.cn-beijing.volces.com/api/v3/responses";
 const ARK_MODEL = "doubao-seed-1-6-flash-250828";
-const PLACEHOLDER_ARK_API_KEY = "ark-96fd4580-272f-4406-b112-0aae21641272-12345";
+const PLACEHOLDER_ARK_API_KEY = "ark-96fd4580-272f-4406-b112-0aae21641272-f9546";
 
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
